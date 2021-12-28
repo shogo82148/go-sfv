@@ -122,7 +122,13 @@ func checkValue(t *testContext, got Value, want interface{}) {
 			t.Errorf("unexpected type: %T", got)
 		}
 	case string:
-		t.Error("TODO: implement")
+		if got, ok := got.(string); ok {
+			if got != want {
+				t.Errorf("want %q, got %q", want, got)
+			}
+		} else {
+			t.Errorf("want %T type, %T type", want, got)
+		}
 	case bool:
 		if got, ok := got.(bool); ok {
 			if got != want {

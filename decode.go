@@ -3,6 +3,7 @@ package sfv
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 const endOfInput = -1
@@ -50,6 +51,14 @@ func (s *decodeState) next() {
 	}
 }
 
+func (s *decodeState) errUnexpectedCharacter() error {
+	ch := s.peek()
+	if ch == endOfInput {
+		return errors.New("unexpected the end of the input")
+	}
+	return fmt.Errorf("unexpected character: %q", ch)
+}
+
 func (s *decodeState) decodeItem() (Item, error) {
 	v, err := s.decodeBareItem()
 	if err != nil {
@@ -70,13 +79,42 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 		// an Integer or Decimal
 	case ch == '"':
 		// a String
+		s.next() // skip '"'
+		var buf strings.Builder
+		for {
+			ch := s.peek()
+			switch {
+			case ch == '\\':
+				s.next() // skip '\\'
+				switch s.peek() {
+				case '\\':
+					s.next() // skip '\\'
+					buf.WriteByte('\\')
+				case '"':
+					s.next() // skip '"'
+					buf.WriteByte('"')
+				default:
+					return nil, s.errUnexpectedCharacter()
+				}
+			case ch == '"':
+				// the end of a String
+				s.next() // skip '"'
+				return buf.String(), nil
+			case ch >= 0x20 && ch < 0x7f:
+				s.next()
+				buf.WriteByte(byte(ch))
+			default:
+				return nil, s.errUnexpectedCharacter()
+			}
+		}
+
 	case ch == '*' || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'):
 		// a Token
 	case ch == ':':
 		// a Byte Sequence
 	case ch == '?':
 		// a Boolean
-		s.next()
+		s.next() // skip '?'
 		switch s.peek() {
 		case '0':
 			return false, nil
@@ -84,11 +122,7 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 			return true, nil
 		}
 	}
-	ch = s.peek()
-	if ch == endOfInput {
-		return nil, errors.New("unexpected the end of the input")
-	}
-	return nil, fmt.Errorf("unexpected character: %q", ch)
+	return nil, s.errUnexpectedCharacter()
 }
 
 func DecodeItem(fields []string) (Item, error) {
