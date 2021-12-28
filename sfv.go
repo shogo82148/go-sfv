@@ -1,5 +1,7 @@
 package sfv
 
+import "errors"
+
 // Token is a token defined in RFC 8941 Section 3.3.4. Tokens.
 type Token string
 
@@ -90,4 +92,25 @@ func (dict Dictionary) Get(key string) Item {
 // Len returns the number of items in the dict.
 func (dict Dictionary) Len() int {
 	return len(dict)
+}
+
+func DecodeItem(fields ...string) (Item, error) {
+	var item Item
+	switch fields[0] {
+	case "?0":
+		item.Value = false
+	case "?1":
+		item.Value = true
+	default:
+		return Item{}, errors.New("TODO: implement")
+	}
+	return item, nil
+}
+
+func DecodeList(fields ...string) (List, error) {
+	return nil, errors.New("TODO: implement")
+}
+
+func DecodeDictionary(fields ...string) (Dictionary, error) {
+	return nil, errors.New("TODO: implement")
 }
