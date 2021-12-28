@@ -49,7 +49,7 @@ func runTestCases(t *testing.T, filename string) {
 		t.Run(tt.Name, func(t *testing.T) {
 			switch tt.HeaderType {
 			case headerTypeItem:
-				item, err := DecodeItem(tt.Raw...)
+				item, err := DecodeItem(tt.Raw)
 				if tt.MustFail {
 					if err == nil {
 						t.Error("must fail, but no errors")
@@ -98,7 +98,7 @@ func newTestContext(t *testing.T) *testContext {
 func checkItem(t *testContext, got Item, want interface{}) {
 	item, ok := want.([]interface{})
 	if !ok || len(item) != 2 {
-		t.Errorf("invalid test data: %v", want)
+		t.Errorf("invalid test data: want a (bare_item, parameters) tuple, got %v", want)
 		return
 	}
 	checkValue(t, got.Value, item[0])
