@@ -94,8 +94,48 @@ type testContext struct {
 
 func newTestContext(t *testing.T) *testContext {
 	return &testContext{
-		T: t,
+		T:    t,
+		Path: "root",
 	}
+}
+
+func (t testContext) Items() *testContext {
+	return &testContext{
+		T:    t.T,
+		Path: t.Path + "/Items",
+	}
+}
+
+func (t testContext) Parameters() *testContext {
+	return &testContext{
+		T:    t.T,
+		Path: t.Path + "/Parameters",
+	}
+}
+
+func (t testContext) Key(name string) *testContext {
+	return &testContext{
+		T:    t.T,
+		Path: t.Path + "." + name,
+	}
+}
+
+func (t testContext) Index(idx int) *testContext {
+	return &testContext{
+		T:    t.T,
+		Path: t.Path + fmt.Sprintf("[%d]", idx),
+	}
+}
+
+func (t testContext) Errorf(format string, args ...interface{}) {
+	t.Helper()
+	msg := fmt.Sprintf(format, args...)
+	t.T.Error(msg, "in", t.Path)
+}
+
+func (t testContext) Error(msg string) {
+	t.Helper()
+	t.T.Error(msg, "in", t.Path)
 }
 
 func checkItem(t *testContext, got Item, want interface{}) {
@@ -104,7 +144,13 @@ func checkItem(t *testContext, got Item, want interface{}) {
 		t.Errorf("invalid test data: want a (bare_item, parameters) tuple, got %v", want)
 		return
 	}
-	checkValue(t, got.Value, item[0])
+	checkValue(t.Items(), got.Value, item[0])
+
+	params, ok := item[1].([]interface{})
+	if !ok {
+		t.Errorf("invalid test data: want parameters, got %v", item[1])
+	}
+	checkParameter(t.Parameters(), got.Parameters, params)
 }
 
 func checkValue(t *testContext, got Value, want interface{}) {
@@ -186,5 +232,28 @@ func checkValue(t *testContext, got Value, want interface{}) {
 		t.Error("TODO: implement")
 	default:
 		t.Errorf("error while parsing test case, unknown type: %T", want)
+	}
+}
+
+func checkParameter(t *testContext, got Parameters, want []interface{}) {
+	if len(got) != len(want) {
+		t.Errorf("invalid length: want %d, got %d", len(want), len(got))
+		return
+	}
+	for i := range want {
+		kv, ok := want[i].([]interface{})
+		if !ok || len(kv) != 2 {
+			t.Errorf("invalid test case: want (key, value) tuple, got %v", want[i])
+			return
+		}
+		key, ok := kv[0].(string)
+		if !ok {
+			t.Errorf("invalid test case: invalid key type: %T", kv[0])
+			return
+		}
+		if got[i].Key != key {
+			t.Errorf("unexpected key: want %q, got %q", key, got[i].Key)
+		}
+		checkValue(t.Key(key), got[i].Value, kv[1])
 	}
 }
