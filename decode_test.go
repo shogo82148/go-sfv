@@ -2,12 +2,40 @@ package sfv
 
 import "testing"
 
+func TestDecodeExamples(t *testing.T) {
+	runTestCases(t, "./testdata/examples.json")
+}
+
+func TestDecodeLargeGenerated(t *testing.T) {
+	runTestCases(t, "./testdata/large-generated.json")
+}
+
 func TestDecodeList(t *testing.T) {
 	runTestCases(t, "./testdata/list.json")
 }
 
+func TestDecodeParamList(t *testing.T) {
+	runTestCases(t, "./testdata/param-list.json")
+}
+
 func TestDecodeListList(t *testing.T) {
 	runTestCases(t, "./testdata/listlist.json")
+}
+
+func TestDecodeParamListList(t *testing.T) {
+	runTestCases(t, "./testdata/param-listlist.json")
+}
+
+func TestDecodeDictionary(t *testing.T) {
+	runTestCases(t, "./testdata/dictionary.json")
+}
+
+func TestDecodeParamDict(t *testing.T) {
+	runTestCases(t, "./testdata/param-dict.json")
+}
+
+func TestDecodeKeyGenerated(t *testing.T) {
+	runTestCases(t, "./testdata/key-generated.json")
 }
 
 func TestDecodeItem(t *testing.T) {

@@ -78,6 +78,18 @@ func runTestCases(t *testing.T, filename string) {
 				}
 				checkList(newTestContext(t), list, tt.Expected)
 			case headerTypeDictionary:
+				dict, err := DecodeDictionary(tt.Raw)
+				if tt.MustFail {
+					if err == nil {
+						t.Error("must fail, but no errors")
+					}
+					return
+				}
+				if err != nil {
+					t.Errorf("unexpected parse error: %v", err)
+					return
+				}
+				checkDictionary(newTestContext(t), dict, tt.Expected)
 			default:
 				t.Errorf("unknown header type: %q", tt.HeaderType)
 			}
@@ -294,5 +306,34 @@ func checkList(t *testContext, got List, want interface{}) {
 		want := list[i]
 		got := got[i]
 		checkItem(t.Index(i), got, want)
+	}
+}
+
+func checkDictionary(t *testContext, got Dictionary, want interface{}) {
+	dict, ok := want.([]interface{})
+	if !ok {
+		t.Errorf("error while parsing test case, unknown type: %T", want)
+		return
+	}
+	if len(got) != len(dict) {
+		t.Errorf("invalid length: want %d, got %d", len(dict), len(got))
+		return
+	}
+	for i := 0; i < len(got) && i < len(dict); i++ {
+		kv, ok := dict[i].([]interface{})
+		if !ok || len(kv) != 2 {
+			t.Errorf("invalid test case: want (key, value) tuple, got %v", dict[i])
+			return
+		}
+		key, ok := kv[0].(string)
+		if !ok {
+			t.Errorf("invalid test case: invalid key type: %T", kv[0])
+			return
+		}
+		got := got[i]
+		if got.Key != key {
+			t.Errorf("unexpected key: want %q, got %q", key, got.Key)
+		}
+		checkItem(t.Index(i), got.Item, kv[1])
 	}
 }

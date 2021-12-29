@@ -10,7 +10,7 @@ import (
 
 const endOfInput = -1
 
-var validParamKeyChars = [256]bool{
+var validKeyChars = [256]bool{
 	'_': true,
 	'-': true,
 	'.': true,
@@ -504,7 +504,7 @@ func (s *decodeState) decodeParameters() (Parameters, error) {
 		s.next() // skip ';'
 		s.skipSPs()
 
-		key, err := s.decodeParameterKey()
+		key, err := s.decodeKey()
 		if err != nil {
 			return nil, err
 		}
@@ -537,7 +537,7 @@ func (s *decodeState) decodeParameters() (Parameters, error) {
 	return params, nil
 }
 
-func (s *decodeState) decodeParameterKey() (string, error) {
+func (s *decodeState) decodeKey() (string, error) {
 	ch := s.peek()
 	if (ch < 'a' || ch > 'z') && ch != '*' {
 		return "", s.errUnexpectedCharacter()
@@ -551,7 +551,7 @@ func (s *decodeState) decodeParameterKey() (string, error) {
 		if ch == endOfInput {
 			break
 		}
-		if !validParamKeyChars[ch] {
+		if !validKeyChars[ch] {
 			break
 		}
 		s.next()
@@ -631,6 +631,73 @@ func (s *decodeState) decodeList() (List, error) {
 	return list, nil
 }
 
+func (s *decodeState) decodeDictionary() (Dictionary, error) {
+	if s.peek() == endOfInput {
+		// it is an empty dictionary
+		return nil, nil
+	}
+
+	var dict Dictionary
+	seenKeys := map[string]int{}
+	for {
+		// decode keys
+		key, err := s.decodeKey()
+		if err != nil {
+			return nil, err
+		}
+
+		// decode items
+		var item Item
+		if s.peek() == '=' {
+			s.next() // skip '='
+			item, err = s.decodeItemOrInnerItem()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			params, err := s.decodeParameters()
+			if err != nil {
+				return nil, err
+			}
+			item = Item{
+				Value:      true,
+				Parameters: params,
+			}
+		}
+		if i, ok := seenKeys[key]; ok {
+			// parameters already contains a key,
+			// overwrite its value
+			dict[i] = DictMember{
+				Key:  key,
+				Item: item,
+			}
+		} else {
+			seenKeys[key] = len(dict)
+			dict = append(dict, DictMember{
+				Key:  key,
+				Item: item,
+			})
+		}
+
+		// skip commas
+		s.skipOWS()
+		ch := s.peek()
+		if ch == endOfInput {
+			break
+		}
+		if ch != ',' {
+			return nil, s.errUnexpectedCharacter()
+		}
+		s.next() // skip ','
+		s.skipOWS()
+		if s.peek() == endOfInput {
+			// it is trailing comma.
+			return nil, errors.New("trailing comma is not allowed")
+		}
+	}
+	return dict, nil
+}
+
 func DecodeItem(fields []string) (Item, error) {
 	state := &decodeState{
 		fields: fields,
@@ -664,5 +731,17 @@ func DecodeList(fields []string) (List, error) {
 }
 
 func DecodeDictionary(fields []string) (Dictionary, error) {
-	return nil, errors.New("TODO: implement")
+	state := &decodeState{
+		fields: fields,
+	}
+	state.skipSPs()
+	ret, err := state.decodeDictionary()
+	if err != nil {
+		return nil, err
+	}
+	state.skipSPs()
+	if state.peek() != endOfInput {
+		return nil, state.errUnexpectedCharacter()
+	}
+	return ret, nil
 }
