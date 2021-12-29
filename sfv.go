@@ -38,6 +38,15 @@ func (t Token) Valid() bool {
 	return true
 }
 
+func IsValidString(s string) bool {
+	for _, ch := range []byte(s) {
+		if ch < 0x20 || ch >= 0x7f {
+			return false
+		}
+	}
+	return true
+}
+
 // Value is a bare item.
 // It might be Integers, Decimals, Strings, Tokens, Byte Sequences, Booleans or Inner Lists.
 // It's type is one of these:

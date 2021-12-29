@@ -28,6 +28,7 @@ func (s *encodeState) encodeBareItem(v Value) error {
 		var buf [20]byte
 		dst := strconv.AppendInt(buf[:0], v, 10)
 		s.buf.Write(dst)
+
 	case float64:
 		i := int64(math.RoundToEven(v * 1000))
 		if i > MaxInteger || i < MinInteger {
@@ -59,24 +60,44 @@ func (s *encodeState) encodeBareItem(v Value) error {
 			break // omit trailing zeros
 		}
 		s.buf.WriteByte(byte(frac) + '0')
+
 	case string:
+		if !IsValidString(v) {
+			return fmt.Errorf("string %q has invalid characters", v)
+		}
+		s.buf.WriteByte('"')
+		for _, ch := range []byte(v) {
+			switch ch {
+			case '\\':
+				s.buf.WriteString("\\\\")
+			case '"':
+				s.buf.WriteString("\\\"")
+			default:
+				s.buf.WriteByte(ch)
+			}
+		}
+		s.buf.WriteByte('"')
+
 	case Token:
 		if !v.Valid() {
 			return fmt.Errorf("token %q is invalid form", v)
 		}
 		s.buf.WriteString(string(v))
+
 	case []byte:
 		s.buf.WriteByte(':')
 		w := base64.NewEncoder(base64.StdEncoding, &s.buf)
 		w.Write(v)
 		w.Close()
 		s.buf.WriteByte(':')
+
 	case bool:
 		if v {
 			s.buf.WriteString("?1")
 		} else {
 			s.buf.WriteString("?0")
 		}
+
 	default:
 		return fmt.Errorf("unsupported type: %T", v)
 	}
