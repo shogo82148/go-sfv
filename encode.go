@@ -143,6 +143,14 @@ func (s *encodeState) encodeKey(key string) error {
 }
 
 func (s *encodeState) encodeList(list List) error {
+	for i, item := range list {
+		if err := s.encodeItem(item); err != nil {
+			return err
+		}
+		if i+1 < len(list) {
+			s.buf.WriteString(", ")
+		}
+	}
 	return nil
 }
 

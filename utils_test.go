@@ -84,6 +84,7 @@ func runTestCases(t *testing.T, filename string) {
 					t.Errorf("want %q, got %q", canonical, encoded)
 				}
 			case headerTypeList:
+				// test decoding
 				list, err := DecodeList(tt.Raw)
 				if tt.MustFail {
 					if err == nil {
@@ -96,6 +97,15 @@ func runTestCases(t *testing.T, filename string) {
 					return
 				}
 				checkList(newTestContext(t), list, tt.Expected)
+
+				// test encoding
+				encoded, err := EncodeList(list)
+				if err != nil {
+					t.Errorf("unexpected encode error: %v", err)
+				}
+				if encoded != canonical {
+					t.Errorf("want %q, got %q", canonical, encoded)
+				}
 			case headerTypeDictionary:
 				dict, err := DecodeDictionary(tt.Raw)
 				if tt.MustFail {
