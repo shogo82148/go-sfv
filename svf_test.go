@@ -2,74 +2,74 @@ package sfv
 
 import "testing"
 
-func TestDecodeExamples(t *testing.T) {
+func TestExamples(t *testing.T) {
 	runTestCases(t, "./testdata/examples.json")
 }
 
-func TestDecodeLargeGenerated(t *testing.T) {
+func TestLargeGenerated(t *testing.T) {
 	runTestCases(t, "./testdata/large-generated.json")
 }
 
-func TestDecodeList(t *testing.T) {
+func TestList(t *testing.T) {
 	runTestCases(t, "./testdata/list.json")
 }
 
-func TestDecodeParamList(t *testing.T) {
+func TestParamList(t *testing.T) {
 	runTestCases(t, "./testdata/param-list.json")
 }
 
-func TestDecodeListList(t *testing.T) {
+func TestListList(t *testing.T) {
 	runTestCases(t, "./testdata/listlist.json")
 }
 
-func TestDecodeParamListList(t *testing.T) {
+func TestParamListList(t *testing.T) {
 	runTestCases(t, "./testdata/param-listlist.json")
 }
 
-func TestDecodeDictionary(t *testing.T) {
+func TestDictionary(t *testing.T) {
 	runTestCases(t, "./testdata/dictionary.json")
 }
 
-func TestDecodeParamDict(t *testing.T) {
+func TestParamDict(t *testing.T) {
 	runTestCases(t, "./testdata/param-dict.json")
 }
 
-func TestDecodeKeyGenerated(t *testing.T) {
+func TestKeyGenerated(t *testing.T) {
 	runTestCases(t, "./testdata/key-generated.json")
 }
 
-func TestDecodeItem(t *testing.T) {
+func TestItem(t *testing.T) {
 	runTestCases(t, "./testdata/item.json")
 }
 
-func TestDecodeNumber(t *testing.T) {
+func TestNumber(t *testing.T) {
 	runTestCases(t, "./testdata/number.json")
 }
 
-func TestDecodeNumberGenerated(t *testing.T) {
+func TestNumberGenerated(t *testing.T) {
 	runTestCases(t, "./testdata/number-generated.json")
 }
 
-func TestDecodeString(t *testing.T) {
+func TestString(t *testing.T) {
 	runTestCases(t, "./testdata/string.json")
 }
 
-func TestDecodeStringGenerated(t *testing.T) {
+func TestStringGenerated(t *testing.T) {
 	runTestCases(t, "./testdata/string-generated.json")
 }
 
-func TestDecodeToken(t *testing.T) {
+func TestToken(t *testing.T) {
 	runTestCases(t, "./testdata/token.json")
 }
 
-func TestDecodeTokenGenerated(t *testing.T) {
+func TestTokenGenerated(t *testing.T) {
 	runTestCases(t, "./testdata/token-generated.json")
 }
 
-func TestDecodeBinary(t *testing.T) {
+func TestBinary(t *testing.T) {
 	runTestCases(t, "./testdata/binary.json")
 }
 
-func TestDecodeBoolean(t *testing.T) {
+func TestBoolean(t *testing.T) {
 	runTestCases(t, "./testdata/boolean.json")
 }

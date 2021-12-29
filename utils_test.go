@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -50,8 +51,16 @@ func runTestCases(t *testing.T, filename string) {
 
 	for _, tt := range cases {
 		t.Run(tt.Name, func(t *testing.T) {
+			var canonical string
+			if tt.Canonical != nil {
+				canonical = strings.Join(tt.Canonical, ",")
+			} else {
+				canonical = strings.Join(tt.Raw, ",")
+			}
+
 			switch tt.HeaderType {
 			case headerTypeItem:
+				// test decoding
 				item, err := DecodeItem(tt.Raw)
 				if tt.MustFail {
 					if err == nil {
@@ -64,6 +73,16 @@ func runTestCases(t *testing.T, filename string) {
 					return
 				}
 				checkItem(newTestContext(t), item, tt.Expected)
+
+				// test encoding
+				encoded, err := EncodeItem(item)
+				if err != nil {
+					t.Errorf("unexpected encode error: %v", err)
+					return
+				}
+				if encoded != canonical {
+					t.Errorf("want %q, got %q", canonical, encoded)
+				}
 			case headerTypeList:
 				list, err := DecodeList(tt.Raw)
 				if tt.MustFail {
