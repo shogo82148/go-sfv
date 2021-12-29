@@ -8,6 +8,96 @@ import (
 
 const endOfInput = -1
 
+// valid character for Token except the first character.
+var validTokenChars = [256]bool{
+	':': true,
+	'/': true,
+
+	// tchar from RFC 7230
+	'!':  true,
+	'#':  true,
+	'$':  true,
+	'%':  true,
+	'&':  true,
+	'\'': true,
+	'*':  true,
+	'+':  true,
+	'-':  true,
+	'.':  true,
+	'^':  true,
+	'_':  true,
+	'`':  true,
+	'|':  true,
+	'~':  true,
+	// and DIGIT and ALPHA
+
+	// DIGIT from RFC 7230
+	'0': true,
+	'1': true,
+	'2': true,
+	'3': true,
+	'4': true,
+	'5': true,
+	'6': true,
+	'7': true,
+	'8': true,
+	'9': true,
+
+	// ALPHA from RFC 7230
+	'A': true,
+	'B': true,
+	'C': true,
+	'D': true,
+	'E': true,
+	'F': true,
+	'G': true,
+	'H': true,
+	'I': true,
+	'J': true,
+	'K': true,
+	'L': true,
+	'M': true,
+	'N': true,
+	'O': true,
+	'P': true,
+	'Q': true,
+	'R': true,
+	'S': true,
+	'T': true,
+	'U': true,
+	'V': true,
+	'W': true,
+	'X': true,
+	'Y': true,
+	'Z': true,
+	'a': true,
+	'b': true,
+	'c': true,
+	'd': true,
+	'e': true,
+	'f': true,
+	'g': true,
+	'h': true,
+	'i': true,
+	'j': true,
+	'k': true,
+	'l': true,
+	'm': true,
+	'n': true,
+	'o': true,
+	'p': true,
+	'q': true,
+	'r': true,
+	's': true,
+	't': true,
+	'u': true,
+	'v': true,
+	'w': true,
+	'x': true,
+	'y': true,
+	'z': true,
+}
+
 type decodeState struct {
 	fields     []string
 	line, col  int
@@ -110,6 +200,19 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 
 	case ch == '*' || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'):
 		// a Token
+		var buf strings.Builder
+		for {
+			ch := s.peek()
+			switch {
+			case ch == endOfInput:
+				return Token(buf.String()), nil
+			case validTokenChars[ch]:
+				s.next()
+				buf.WriteByte(byte(ch))
+			default:
+				return Token(buf.String()), nil
+			}
+		}
 	case ch == ':':
 		// a Byte Sequence
 	case ch == '?':

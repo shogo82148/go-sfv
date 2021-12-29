@@ -138,7 +138,29 @@ func checkValue(t *testContext, got Value, want interface{}) {
 			t.Errorf("want %T type, %T type", want, got)
 		}
 	case map[string]interface{}:
-		t.Error("TODO: implement")
+		typ, ok := want["__type"].(string)
+		if !ok {
+			t.Error("invalid test case: __type is not found")
+			return
+		}
+		value, ok := want["value"].(string)
+		if !ok {
+			t.Error("invalid test case: value is not found")
+			return
+		}
+		switch typ {
+		case "token":
+			if got, ok := got.(Token); ok {
+				if got != Token(value) {
+					t.Errorf("want Token %q, got Token %q", value, got)
+				}
+			} else {
+				t.Errorf("want Token, got %T type", got)
+			}
+		case "binary":
+		default:
+			t.Errorf("invalid test case: unknown __type: %q", typ)
+		}
 	case []interface{}:
 		t.Error("TODO: implement")
 	default:
