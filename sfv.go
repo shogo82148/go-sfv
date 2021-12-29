@@ -70,11 +70,7 @@ func (dict Dictionary) Get(key string) Item {
 	// In many cases, there are a few items.
 	// So Linear searching is enough to handle them.
 
-	// We search from the last.
-	// because there might be duplicate parameter keys,
-	// and we want to get the last instance in this case.
-	for i := len(dict) - 1; i >= 0; i-- {
-		kv := dict[i]
+	for _, kv := range dict {
 		if kv.Key == key {
 			return kv.Item
 		}
