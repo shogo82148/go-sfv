@@ -19,6 +19,12 @@ func (s *encodeState) encodeItem(item Item) error {
 
 func (s *encodeState) encodeBareItem(v Value) error {
 	switch v := v.(type) {
+	case string:
+	case Token:
+		if !v.Valid() {
+			return fmt.Errorf("token %q is invalid form", v)
+		}
+		s.buf.WriteString(string(v))
 	case []byte:
 		s.buf.WriteByte(':')
 		w := base64.NewEncoder(base64.StdEncoding, &s.buf)

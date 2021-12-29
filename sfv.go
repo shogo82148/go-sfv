@@ -3,6 +3,23 @@ package sfv
 // Token is a token defined in RFC 8941 Section 3.3.4. Tokens.
 type Token string
 
+// Valid returns whether the t has valid form.
+func (t Token) Valid() bool {
+	if t == "" {
+		return false
+	}
+	ch := t[0]
+	if ch != '*' && (ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') {
+		return false
+	}
+	for _, ch := range []byte(t[1:]) {
+		if !validTokenChars[ch] {
+			return false
+		}
+	}
+	return true
+}
+
 // Value is a bare item.
 // It might be Integers, Decimals, Strings, Tokens, Byte Sequences, Booleans or Inner Lists.
 // It's type is one of these:
