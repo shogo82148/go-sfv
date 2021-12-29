@@ -10,6 +10,53 @@ import (
 
 const endOfInput = -1
 
+var validParamKeyChars = [256]bool{
+	'_': true,
+	'-': true,
+	'.': true,
+	'*': true,
+
+	// DIGIT from RFC 7230
+	'0': true,
+	'1': true,
+	'2': true,
+	'3': true,
+	'4': true,
+	'5': true,
+	'6': true,
+	'7': true,
+	'8': true,
+	'9': true,
+
+	// lcalpha
+	'a': true,
+	'b': true,
+	'c': true,
+	'd': true,
+	'e': true,
+	'f': true,
+	'g': true,
+	'h': true,
+	'i': true,
+	'j': true,
+	'k': true,
+	'l': true,
+	'm': true,
+	'n': true,
+	'o': true,
+	'p': true,
+	'q': true,
+	'r': true,
+	's': true,
+	't': true,
+	'u': true,
+	'v': true,
+	'w': true,
+	'x': true,
+	'y': true,
+	'z': true,
+}
+
 // valid character for Token except the first character.
 var validTokenChars = [256]bool{
 	':': true,
@@ -240,10 +287,14 @@ func (s *decodeState) decodeItem() (Item, error) {
 		return Item{}, err
 	}
 
-	// TODO: parse parameters
+	param, err := s.decodeParameters()
+	if err != nil {
+		return Item{}, err
+	}
 
 	return Item{
-		Value: v,
+		Value:      v,
+		Parameters: param,
 	}, nil
 }
 
@@ -434,6 +485,61 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 		}
 	}
 	return nil, s.errUnexpectedCharacter()
+}
+
+func (s *decodeState) decodeParameters() (Parameters, error) {
+	var params Parameters
+	for {
+		if s.peek() != ';' {
+			break
+		}
+		s.next() // skip ';'
+		s.skipSPs()
+
+		key, err := s.decodeParameterKey()
+		if err != nil {
+			return nil, err
+		}
+		var value Value
+		if s.peek() == '=' {
+			s.next() // skip '='
+			value, err = s.decodeBareItem()
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			value = true
+		}
+		params = append(params, Parameter{
+			Key:   key,
+			Value: value,
+		})
+	}
+
+	return params, nil
+}
+
+func (s *decodeState) decodeParameterKey() (string, error) {
+	ch := s.peek()
+	if (ch < 'a' || ch > 'z') && ch != '*' {
+		return "", s.errUnexpectedCharacter()
+	}
+	s.next()
+
+	var buf strings.Builder
+	buf.WriteByte(byte(ch))
+	for {
+		ch := s.peek()
+		if ch == endOfInput {
+			break
+		}
+		if !validParamKeyChars[ch] {
+			break
+		}
+		s.next()
+		buf.WriteByte(byte(ch))
+	}
+	return buf.String(), nil
 }
 
 func DecodeItem(fields []string) (Item, error) {
