@@ -155,6 +155,23 @@ func (s *encodeState) encodeList(list List) error {
 }
 
 func (s *encodeState) encodeDictionary(dict Dictionary) error {
+	for i, item := range dict {
+		if err := s.encodeKey(item.Key); err != nil {
+			return err
+		}
+		if item.Item.Value != true {
+			s.buf.WriteByte('=')
+			if err := s.encodeBareItem(item.Item.Value); err != nil {
+				return err
+			}
+		}
+		if err := s.encodeParams(item.Item.Parameters); err != nil {
+			return err
+		}
+		if i+1 < len(dict) {
+			s.buf.WriteString(", ")
+		}
+	}
 	return nil
 }
 

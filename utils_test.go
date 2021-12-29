@@ -107,6 +107,7 @@ func runTestCases(t *testing.T, filename string) {
 					t.Errorf("want %q, got %q", canonical, encoded)
 				}
 			case headerTypeDictionary:
+				// test decoding
 				dict, err := DecodeDictionary(tt.Raw)
 				if tt.MustFail {
 					if err == nil {
@@ -119,6 +120,15 @@ func runTestCases(t *testing.T, filename string) {
 					return
 				}
 				checkDictionary(newTestContext(t), dict, tt.Expected)
+
+				// test encoding
+				encoded, err := EncodeDictionary(dict)
+				if err != nil {
+					t.Errorf("unexpected encode error: %v", err)
+				}
+				if encoded != canonical {
+					t.Errorf("want %q, got %q", canonical, encoded)
+				}
 			default:
 				t.Errorf("unknown header type: %q", tt.HeaderType)
 			}
