@@ -5,6 +5,7 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"testing"
 )
@@ -111,7 +112,13 @@ func checkValue(t *testContext, got Value, want interface{}) {
 	case float64:
 		switch got := got.(type) {
 		case int64:
-			t.Error("TODO: implement")
+			i, frac := math.Modf(want)
+			if frac != 0 {
+				t.Errorf("want %.3f, got %d", want, got)
+			}
+			if got != int64(i) {
+				t.Errorf("want %d, got %d", int64(i), got)
+			}
 		case float64:
 			// convert the numbers into string to avoid calculation errors.
 			// the fractional component has at most three digits.

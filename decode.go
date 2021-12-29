@@ -173,6 +173,10 @@ var validBase64Chars = [256]bool{
 	'z': true,
 }
 
+func isDigit(ch int) bool {
+	return ch >= '0' && ch <= '9'
+}
+
 type decodeState struct {
 	fields     []string
 	line, col  int
@@ -240,8 +244,88 @@ func (s *decodeState) decodeItem() (Item, error) {
 func (s *decodeState) decodeBareItem() (Value, error) {
 	ch := s.peek()
 	switch {
-	case ch == '-' || (ch >= '0' && ch <= '9'):
+	case ch == '-' || isDigit(ch):
 		// an Integer or Decimal
+		neg := false
+		if ch == '-' {
+			neg = true
+			s.next()
+
+			if !isDigit(s.peek()) {
+				return nil, s.errUnexpectedCharacter()
+			}
+		}
+
+		num := int64(0)
+		cnt := 0
+		for {
+			ch := s.peek()
+			if !isDigit(ch) {
+				break
+			}
+			s.next()
+			num = num*10 + int64(ch-'0')
+			cnt++
+			if cnt > 15 {
+				return nil, errors.New("integer overflow")
+			}
+		}
+		if s.peek() != '.' {
+			// it is an Integer
+			if neg {
+				num *= -1
+			}
+			return num, nil
+		}
+		// current character is '.'
+		s.next() // skip '.'
+
+		// it might be a Decimal
+		if cnt > 12 {
+			return nil, errors.New("decimal overflow")
+		}
+
+		frac := 0
+		ch := s.peek()
+		if !isDigit(ch) {
+			// fractional part MUST NOT be empty.
+			return nil, s.errUnexpectedCharacter()
+		}
+		s.next()
+		frac = frac*10 + int(ch-'0')
+
+		ch = s.peek()
+		if !isDigit(ch) {
+			ret := float64(num) + float64(frac)/10
+			if neg {
+				ret *= -1
+			}
+			return ret, nil
+		}
+		s.next()
+		frac = frac*10 + int(ch-'0')
+
+		ch = s.peek()
+		if !isDigit(ch) {
+			ret := float64(num) + float64(frac)/100
+			if neg {
+				ret *= -1
+			}
+			return ret, nil
+		}
+		s.next()
+		frac = frac*10 + int(ch-'0')
+
+		ch = s.peek()
+		if !isDigit(ch) {
+			ret := float64(num) + float64(frac)/1000
+			if neg {
+				ret *= -1
+			}
+			return ret, nil
+		}
+		return nil, errors.New("decimal has too long fractional part")
+
 	case ch == '"':
 		// a String
 		s.next() // skip '"'
