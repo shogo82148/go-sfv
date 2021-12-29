@@ -1,5 +1,23 @@
 package sfv
 
+const (
+	// The range of Integers
+	MaxInteger = 999_999_999_999_999
+	MinInteger = -999_999_999_999_999
+
+	// Decimals must be smaller than 1e12, after it is rounded
+	// with more than three digits of precision in the fractional component.
+	//
+	// 0x1.d1a94a1fffffcp+39 = 999999999999.99951171875   =~ 1000000000000.000 = 1e12
+	//                                         ^ rounds here
+	// 0x1.d1a94a1fffffbp+39 = 999999999999.9993896484375 =~  999999999999.999 < 1e12
+	//                                         ^ rounds here
+
+	// The range of Decimals
+	MaxDecimal = 0x1.d1a94a1fffffbp+39  // = 999999999999.9993896484375
+	MinDecimal = -0x1.d1a94a1fffffbp+39 // = -999999999999.9993896484375
+)
+
 // Token is a token defined in RFC 8941 Section 3.3.4. Tokens.
 type Token string
 

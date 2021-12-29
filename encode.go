@@ -3,6 +3,8 @@ package sfv
 import (
 	"encoding/base64"
 	"fmt"
+	"math"
+	"strconv"
 	"strings"
 )
 
@@ -19,6 +21,44 @@ func (s *encodeState) encodeItem(item Item) error {
 
 func (s *encodeState) encodeBareItem(v Value) error {
 	switch v := v.(type) {
+	case int64:
+		if v > MaxInteger || v < MinInteger {
+			return fmt.Errorf("integer %d is out of range", v)
+		}
+		var buf [20]byte
+		dst := strconv.AppendInt(buf[:0], v, 10)
+		s.buf.Write(dst)
+	case float64:
+		i := int64(math.RoundToEven(v * 1000))
+		if i > MaxInteger || i < MinInteger {
+			return fmt.Errorf("decimal %f is out of range", v)
+		}
+
+		// write the sign
+		if i < 0 {
+			s.buf.WriteByte('-')
+			i *= -1
+		}
+
+		// integer component
+		var buf [20]byte
+		dst := strconv.AppendInt(buf[:0], i/1000, 10)
+		s.buf.Write(dst)
+
+		// fractional component
+		frac := i % 1000
+		s.buf.WriteByte('.')
+		s.buf.WriteByte(byte(frac/100) + '0')
+		frac %= 100
+		if frac == 0 {
+			break // omit trailing zeros
+		}
+		s.buf.WriteByte(byte(frac/10) + '0')
+		frac %= 10
+		if frac == 0 {
+			break // omit trailing zeros
+		}
+		s.buf.WriteByte(byte(frac) + '0')
 	case string:
 	case Token:
 		if !v.Valid() {
