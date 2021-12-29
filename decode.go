@@ -489,6 +489,7 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 
 func (s *decodeState) decodeParameters() (Parameters, error) {
 	var params Parameters
+	seenKeys := map[string]int{}
 	for {
 		if s.peek() != ';' {
 			break
@@ -510,10 +511,20 @@ func (s *decodeState) decodeParameters() (Parameters, error) {
 		} else {
 			value = true
 		}
-		params = append(params, Parameter{
-			Key:   key,
-			Value: value,
-		})
+		if i, ok := seenKeys[key]; ok {
+			// parameters already contains a key,
+			// overwrite its value
+			params[i] = Parameter{
+				Key:   key,
+				Value: value,
+			}
+		} else {
+			seenKeys[key] = len(params)
+			params = append(params, Parameter{
+				Key:   key,
+				Value: value,
+			})
+		}
 	}
 
 	return params, nil

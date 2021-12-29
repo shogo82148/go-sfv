@@ -30,12 +30,7 @@ type Parameters []Parameter
 func (param Parameters) Get(key string) Value {
 	// In many cases, there are a few parameters.
 	// So Linear searching is enough to handle them.
-
-	// We search from the last.
-	// because there might be duplicate parameter keys,
-	// and we want to get the last instance in this case.
-	for i := len(param) - 1; i >= 0; i-- {
-		kv := param[i]
+	for _, kv := range param {
 		if kv.Key == key {
 			return kv.Value
 		}
