@@ -2,6 +2,7 @@ package sfv
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -14,6 +15,9 @@ type encodeState struct {
 
 func (s *encodeState) encodeItem(item Item) error {
 	if err := s.encodeBareItem(item.Value); err != nil {
+		return err
+	}
+	if err := s.encodeParams(item.Parameters); err != nil {
 		return err
 	}
 	return nil
@@ -80,7 +84,7 @@ func (s *encodeState) encodeBareItem(v Value) error {
 
 	case Token:
 		if !v.Valid() {
-			return fmt.Errorf("token %q is invalid form", v)
+			return fmt.Errorf("token %q has invalid characters", v)
 		}
 		s.buf.WriteString(string(v))
 
@@ -101,6 +105,40 @@ func (s *encodeState) encodeBareItem(v Value) error {
 	default:
 		return fmt.Errorf("unsupported type: %T", v)
 	}
+	return nil
+}
+
+func (s *encodeState) encodeParams(params Parameters) error {
+	for _, param := range params {
+		s.buf.WriteByte(';')
+		if err := s.encodeKey(param.Key); err != nil {
+			return err
+		}
+		if param.Value == true {
+			continue
+		}
+		s.buf.WriteByte('=')
+		if err := s.encodeBareItem(param.Value); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *encodeState) encodeKey(key string) error {
+	// validation
+	if len(key) == 0 {
+		return errors.New("key is an empty string")
+	}
+	if (key[0] < 'a' || key[0] > 'z') && key[0] != '*' {
+		return fmt.Errorf("key %q has invalid characters", key)
+	}
+	for _, ch := range []byte(key[1:]) {
+		if !validKeyChars[ch] {
+			return fmt.Errorf("key %q has invalid characters", key)
+		}
+	}
+	s.buf.WriteString(key)
 	return nil
 }
 
