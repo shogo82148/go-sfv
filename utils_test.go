@@ -65,6 +65,18 @@ func runTestCases(t *testing.T, filename string) {
 				}
 				checkItem(newTestContext(t), item, tt.Expected)
 			case headerTypeList:
+				list, err := DecodeList(tt.Raw)
+				if tt.MustFail {
+					if err == nil {
+						t.Error("must fail, but no errors")
+					}
+					return
+				}
+				if err != nil {
+					t.Errorf("unexpected parse error: %v", err)
+					return
+				}
+				checkList(newTestContext(t), list, tt.Expected)
 			case headerTypeDictionary:
 			default:
 				t.Errorf("unknown header type: %q", tt.HeaderType)
@@ -256,4 +268,7 @@ func checkParameter(t *testContext, got Parameters, want []interface{}) {
 		}
 		checkValue(t.Key(key), got[i].Value, kv[1])
 	}
+}
+
+func checkList(t *testContext, got List, want interface{}) {
 }

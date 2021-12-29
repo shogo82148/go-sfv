@@ -2,6 +2,10 @@ package sfv
 
 import "testing"
 
+func TestDecodeList(t *testing.T) {
+	runTestCases(t, "./testdata/list.json")
+}
+
 func TestDecodeItem(t *testing.T) {
 	runTestCases(t, "./testdata/item.json")
 }

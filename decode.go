@@ -273,6 +273,13 @@ func (s *decodeState) skipSPs() {
 	}
 }
 
+// skip OWS in RFC 7230
+func (s *decodeState) skipOWS() {
+	for ch := s.peek(); ch == ' ' || ch == '\t'; ch = s.peek() {
+		s.next()
+	}
+}
+
 func (s *decodeState) errUnexpectedCharacter() error {
 	ch := s.peek()
 	if ch == endOfInput {
@@ -553,6 +560,43 @@ func (s *decodeState) decodeParameterKey() (string, error) {
 	return buf.String(), nil
 }
 
+func (s *decodeState) decodeList() (List, error) {
+	var list List
+
+LOOP:
+	for {
+		ch := s.peek()
+		switch {
+		case ch == endOfInput:
+			break LOOP
+		case ch == '(':
+			// Inner List
+		default:
+			item, err := s.decodeItem()
+			if err != nil {
+				return nil, err
+			}
+			list = append(list, item)
+		}
+
+		s.skipOWS()
+		ch = s.peek()
+		if ch == endOfInput {
+			break
+		}
+		if ch != ',' {
+			return nil, s.errUnexpectedCharacter()
+		}
+		s.next() // skip ','
+		s.skipOWS()
+		if s.peek() == endOfInput {
+			// it is trailing comma.
+			return nil, errors.New("trailing comma is not allowed")
+		}
+	}
+	return list, nil
+}
+
 func DecodeItem(fields []string) (Item, error) {
 	state := &decodeState{
 		fields: fields,
@@ -570,7 +614,19 @@ func DecodeItem(fields []string) (Item, error) {
 }
 
 func DecodeList(fields []string) (List, error) {
-	return nil, errors.New("TODO: implement")
+	state := &decodeState{
+		fields: fields,
+	}
+	state.skipSPs()
+	ret, err := state.decodeList()
+	if err != nil {
+		return nil, err
+	}
+	state.skipSPs()
+	if state.peek() != endOfInput {
+		return nil, state.errUnexpectedCharacter()
+	}
+	return ret, nil
 }
 
 func DecodeDictionary(fields []string) (Dictionary, error) {
