@@ -432,7 +432,14 @@ func DecodeItem(fields []string) (Item, error) {
 	state := &decodeState{
 		fields: fields,
 	}
-	return state.decodeItem()
+	ret, err := state.decodeItem()
+	if err != nil {
+		return Item{}, err
+	}
+	if state.peek() != endOfInput {
+		return Item{}, state.errUnexpectedCharacter()
+	}
+	return ret, nil
 }
 
 func DecodeList(fields []string) (List, error) {
