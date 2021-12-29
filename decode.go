@@ -220,6 +220,12 @@ func (s *decodeState) next() {
 	}
 }
 
+func (s *decodeState) skipSPs() {
+	for s.peek() == ' ' {
+		s.next()
+	}
+}
+
 func (s *decodeState) errUnexpectedCharacter() error {
 	ch := s.peek()
 	if ch == endOfInput {
@@ -434,10 +440,12 @@ func DecodeItem(fields []string) (Item, error) {
 	state := &decodeState{
 		fields: fields,
 	}
+	state.skipSPs()
 	ret, err := state.decodeItem()
 	if err != nil {
 		return Item{}, err
 	}
+	state.skipSPs()
 	if state.peek() != endOfInput {
 		return Item{}, state.errUnexpectedCharacter()
 	}
