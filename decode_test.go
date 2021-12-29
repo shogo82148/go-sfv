@@ -14,6 +14,10 @@ func TestDecodeToken(t *testing.T) {
 	runTestCases(t, "./testdata/token.json")
 }
 
+func TestDecodeBinary(t *testing.T) {
+	runTestCases(t, "./testdata/binary.json")
+}
+
 func TestDecodeBoolean(t *testing.T) {
 	runTestCases(t, "./testdata/boolean.json")
 }

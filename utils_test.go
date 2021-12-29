@@ -1,6 +1,8 @@
 package sfv
 
 import (
+	"bytes"
+	"encoding/base32"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -158,6 +160,18 @@ func checkValue(t *testContext, got Value, want interface{}) {
 				t.Errorf("want Token, got %T type", got)
 			}
 		case "binary":
+			if got, ok := got.([]byte); ok {
+				want, err := base32.StdEncoding.DecodeString(value)
+				if err != nil {
+					t.Errorf("invalid test case: %v", err)
+					return
+				}
+				if !bytes.Equal(got, want) {
+					t.Errorf("want Binary %x, got Binary %x", want, got)
+				}
+			} else {
+				t.Errorf("want []byte type, got %T type", got)
+			}
 		default:
 			t.Errorf("invalid test case: unknown __type: %q", typ)
 		}

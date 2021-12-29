@@ -1,6 +1,8 @@
 package sfv
 
 import (
+	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"strings"
@@ -30,6 +32,79 @@ var validTokenChars = [256]bool{
 	'|':  true,
 	'~':  true,
 	// and DIGIT and ALPHA
+
+	// DIGIT from RFC 7230
+	'0': true,
+	'1': true,
+	'2': true,
+	'3': true,
+	'4': true,
+	'5': true,
+	'6': true,
+	'7': true,
+	'8': true,
+	'9': true,
+
+	// ALPHA from RFC 7230
+	'A': true,
+	'B': true,
+	'C': true,
+	'D': true,
+	'E': true,
+	'F': true,
+	'G': true,
+	'H': true,
+	'I': true,
+	'J': true,
+	'K': true,
+	'L': true,
+	'M': true,
+	'N': true,
+	'O': true,
+	'P': true,
+	'Q': true,
+	'R': true,
+	'S': true,
+	'T': true,
+	'U': true,
+	'V': true,
+	'W': true,
+	'X': true,
+	'Y': true,
+	'Z': true,
+	'a': true,
+	'b': true,
+	'c': true,
+	'd': true,
+	'e': true,
+	'f': true,
+	'g': true,
+	'h': true,
+	'i': true,
+	'j': true,
+	'k': true,
+	'l': true,
+	'm': true,
+	'n': true,
+	'o': true,
+	'p': true,
+	'q': true,
+	'r': true,
+	's': true,
+	't': true,
+	'u': true,
+	'v': true,
+	'w': true,
+	'x': true,
+	'y': true,
+	'z': true,
+}
+
+// character for base64-decoding
+var validBase64Chars = [256]bool{
+	'+': true,
+	'/': true,
+	'=': true,
 
 	// DIGIT from RFC 7230
 	'0': true,
@@ -213,8 +288,49 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 				return Token(buf.String()), nil
 			}
 		}
+
 	case ch == ':':
 		// a Byte Sequence
+		s.next() // skip ':'
+		var buf bytes.Buffer
+		for {
+			ch := s.peek()
+			switch {
+			case ch == endOfInput:
+				return nil, s.errUnexpectedCharacter()
+			case ch == ':':
+				// the end of a Binary
+				s.next() // skip ':'
+
+				// add missing "=" padding
+				// RFC 8941 says that parsers SHOULD NOT fail when "=" padding is not present.
+				switch buf.Len() % 4 {
+				case 0:
+				case 1:
+					buf.WriteByte('=')
+					fallthrough
+				case 2:
+					buf.WriteByte('=')
+					fallthrough
+				case 3:
+					buf.WriteByte('=')
+				}
+
+				enc := base64.StdEncoding
+				ret := make([]byte, enc.DecodedLen(buf.Len()))
+				n, err := enc.Decode(ret, buf.Bytes())
+				if err != nil {
+					return nil, err
+				}
+				return ret[:n], nil
+			case validBase64Chars[ch]:
+				s.next()
+				buf.WriteByte(byte(ch))
+			default:
+				return nil, s.errUnexpectedCharacter()
+			}
+		}
+
 	case ch == '?':
 		// a Boolean
 		s.next() // skip '?'
