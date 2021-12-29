@@ -420,8 +420,10 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 		s.next() // skip '?'
 		switch s.peek() {
 		case '0':
+			s.next() // skip '0'
 			return false, nil
 		case '1':
+			s.next() // skip '1'
 			return true, nil
 		}
 	}
