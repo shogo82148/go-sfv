@@ -6,6 +6,10 @@ func TestDecodeList(t *testing.T) {
 	runTestCases(t, "./testdata/list.json")
 }
 
+func TestDecodeListList(t *testing.T) {
+	runTestCases(t, "./testdata/listlist.json")
+}
+
 func TestDecodeItem(t *testing.T) {
 	runTestCases(t, "./testdata/item.json")
 }

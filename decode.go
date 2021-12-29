@@ -560,27 +560,61 @@ func (s *decodeState) decodeParameterKey() (string, error) {
 	return buf.String(), nil
 }
 
+func (s *decodeState) decodeItemOrInnerItem() (Item, error) {
+	if s.peek() != '(' {
+		// It might be an Item
+		return s.decodeItem()
+	}
+	s.next() // skip '('
+
+	// parse as an Inner List
+	list := InnerList{}
+	for {
+		s.skipSPs()
+		ch := s.peek()
+		if ch == ')' {
+			s.next() // skip ')'
+			break
+		}
+
+		item, err := s.decodeItem()
+		if err != nil {
+			return Item{}, err
+		}
+		list = append(list, item)
+		ch = s.peek()
+		if ch != ' ' && ch != ')' {
+			return Item{}, s.errUnexpectedCharacter()
+		}
+	}
+	params, err := s.decodeParameters()
+	if err != nil {
+		return Item{}, err
+	}
+
+	return Item{
+		Value:      list,
+		Parameters: params,
+	}, nil
+}
+
 func (s *decodeState) decodeList() (List, error) {
 	var list List
 
-LOOP:
+	if s.peek() == endOfInput {
+		// it is an empty list
+		return nil, nil
+	}
+
 	for {
-		ch := s.peek()
-		switch {
-		case ch == endOfInput:
-			break LOOP
-		case ch == '(':
-			// Inner List
-		default:
-			item, err := s.decodeItem()
-			if err != nil {
-				return nil, err
-			}
-			list = append(list, item)
+		item, err := s.decodeItemOrInnerItem()
+		if err != nil {
+			return nil, err
 		}
+		list = append(list, item)
 
 		s.skipOWS()
-		ch = s.peek()
+		ch := s.peek()
 		if ch == endOfInput {
 			break
 		}

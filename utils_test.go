@@ -241,7 +241,17 @@ func checkValue(t *testContext, got Value, want interface{}) {
 			t.Errorf("invalid test case: unknown __type: %q", typ)
 		}
 	case []interface{}:
-		t.Error("TODO: implement")
+		if got, ok := got.(InnerList); ok {
+			if len(got) != len(want) {
+				t.Errorf("unexpected length: want %d, got %d", len(want), len(got))
+			}
+			for i := 0; i < len(got) && i < len(want); i++ {
+				checkItem(t.Index(i), got[i], want[i])
+			}
+		} else {
+			t.Errorf("want InnerList type, got %T type", got)
+		}
+
 	default:
 		t.Errorf("error while parsing test case, unknown type: %T", want)
 	}
@@ -252,7 +262,7 @@ func checkParameter(t *testContext, got Parameters, want []interface{}) {
 		t.Errorf("invalid length: want %d, got %d", len(want), len(got))
 		return
 	}
-	for i := range want {
+	for i := 0; i < len(got) && i < len(want); i++ {
 		kv, ok := want[i].([]interface{})
 		if !ok || len(kv) != 2 {
 			t.Errorf("invalid test case: want (key, value) tuple, got %v", want[i])
@@ -271,4 +281,18 @@ func checkParameter(t *testContext, got Parameters, want []interface{}) {
 }
 
 func checkList(t *testContext, got List, want interface{}) {
+	list, ok := want.([]interface{})
+	if !ok {
+		t.Errorf("error while parsing test case, unknown type: %T", want)
+		return
+	}
+	if len(got) != len(list) {
+		t.Errorf("invalid length: want %d, got %d", len(list), len(got))
+		return
+	}
+	for i := 0; i < len(got) && i < len(list); i++ {
+		want := list[i]
+		got := got[i]
+		checkItem(t.Index(i), got, want)
+	}
 }
