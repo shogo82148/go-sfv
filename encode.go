@@ -1,16 +1,23 @@
 package sfv
 
 import (
+	"bytes"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
+	"sync"
 )
 
+var bufPool = sync.Pool{
+	New: func() interface{} {
+		return new(bytes.Buffer)
+	},
+}
+
 type encodeState struct {
-	buf strings.Builder
+	buf *bytes.Buffer
 }
 
 func (s *encodeState) encodeItem(item Item) error {
@@ -90,7 +97,7 @@ func (s *encodeState) encodeBareItem(v Value) error {
 
 	case []byte:
 		s.buf.WriteByte(':')
-		w := base64.NewEncoder(base64.StdEncoding, &s.buf)
+		w := base64.NewEncoder(base64.StdEncoding, s.buf)
 		w.Write(v)
 		w.Close()
 		s.buf.WriteByte(':')
@@ -200,7 +207,10 @@ func (s *encodeState) encodeDictionary(dict Dictionary) error {
 }
 
 func EncodeItem(item Item) (string, error) {
-	state := &encodeState{}
+	buf := bufPool.Get().(*bytes.Buffer)
+	defer bufPool.Put(buf)
+
+	state := &encodeState{buf: buf}
 	if err := state.encodeItem(item); err != nil {
 		return "", err
 	}
@@ -208,7 +218,10 @@ func EncodeItem(item Item) (string, error) {
 }
 
 func EncodeList(list List) (string, error) {
-	state := &encodeState{}
+	buf := bufPool.Get().(*bytes.Buffer)
+	defer bufPool.Put(buf)
+
+	state := &encodeState{buf: buf}
 	if err := state.encodeList(list); err != nil {
 		return "", err
 	}
@@ -216,7 +229,10 @@ func EncodeList(list List) (string, error) {
 }
 
 func EncodeDictionary(dict Dictionary) (string, error) {
-	state := &encodeState{}
+	buf := bufPool.Get().(*bytes.Buffer)
+	defer bufPool.Put(buf)
+
+	state := &encodeState{buf: buf}
 	if err := state.encodeDictionary(dict); err != nil {
 		return "", err
 	}
