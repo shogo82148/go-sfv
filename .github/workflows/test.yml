@@ -26,6 +26,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Test
+        shell: bash
         run: go test -v -coverprofile=profile.cov ./...
 
       - uses: shogo82148/actions-goveralls@v1
