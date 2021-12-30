@@ -210,6 +210,7 @@ func EncodeItem(item Item) (string, error) {
 	buf := bufPool.Get().(*bytes.Buffer)
 	defer bufPool.Put(buf)
 
+	buf.Reset()
 	state := &encodeState{buf: buf}
 	if err := state.encodeItem(item); err != nil {
 		return "", err
@@ -221,6 +222,7 @@ func EncodeList(list List) (string, error) {
 	buf := bufPool.Get().(*bytes.Buffer)
 	defer bufPool.Put(buf)
 
+	buf.Reset()
 	state := &encodeState{buf: buf}
 	if err := state.encodeList(list); err != nil {
 		return "", err
@@ -232,6 +234,7 @@ func EncodeDictionary(dict Dictionary) (string, error) {
 	buf := bufPool.Get().(*bytes.Buffer)
 	defer bufPool.Put(buf)
 
+	buf.Reset()
 	state := &encodeState{buf: buf}
 	if err := state.encodeDictionary(dict); err != nil {
 		return "", err
