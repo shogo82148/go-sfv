@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -248,4 +249,120 @@ func readDictionary(v interface{}) (Dictionary, error) {
 		})
 	}
 	return ret, nil
+}
+
+func BenchmarkEncodeItem(b *testing.B) {
+	item := Item{
+		Value: []byte("こんにちわ〜o(^^)o"),
+		Parameters: []Parameter{
+			{
+				Key: "integer", Value: int64(1),
+			},
+			{
+				Key: "decimal", Value: 1.234,
+			},
+			{
+				Key: "binary", Value: []byte("こんにちわ〜o(^^)o"),
+			},
+			{
+				Key: "token", Value: Token("hello"),
+			},
+			{
+				Key: "string", Value: "hello world!",
+			},
+			{
+				Key: "boolean", Value: false,
+			},
+		},
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if got, err := EncodeItem(item); err != nil {
+			b.Error(err)
+		} else {
+			runtime.KeepAlive(got)
+		}
+	}
+}
+
+func BenchmarkEncodeList(b *testing.B) {
+	item := Item{
+		Value: []byte("こんにちわ〜o(^^)o"),
+		Parameters: []Parameter{
+			{
+				Key: "integer", Value: int64(1),
+			},
+			{
+				Key: "decimal", Value: 1.234,
+			},
+			{
+				Key: "binary", Value: []byte("こんにちわ〜o(^^)o"),
+			},
+			{
+				Key: "token", Value: Token("hello"),
+			},
+			{
+				Key: "string", Value: "hello world!",
+			},
+			{
+				Key: "boolean", Value: false,
+			},
+		},
+	}
+	var list List
+	for i := 0; i < 1024; i++ {
+		list = append(list, item)
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if got, err := EncodeList(list); err != nil {
+			b.Error(err)
+		} else {
+			runtime.KeepAlive(got)
+		}
+	}
+}
+
+func BenchmarkEncodeDictionary(b *testing.B) {
+	item := Item{
+		Value: []byte("こんにちわ〜o(^^)o"),
+		Parameters: []Parameter{
+			{
+				Key: "integer", Value: int64(1),
+			},
+			{
+				Key: "decimal", Value: 1.234,
+			},
+			{
+				Key: "binary", Value: []byte("こんにちわ〜o(^^)o"),
+			},
+			{
+				Key: "token", Value: Token("hello"),
+			},
+			{
+				Key: "string", Value: "hello world!",
+			},
+			{
+				Key: "boolean", Value: false,
+			},
+		},
+	}
+	var dict Dictionary
+	for i := 0; i < 1024; i++ {
+		dict = append(dict, DictMember{
+			Key:  fmt.Sprintf("key%d", i),
+			Item: item,
+		})
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if got, err := EncodeDictionary(dict); err != nil {
+			b.Error(err)
+		} else {
+			runtime.KeepAlive(got)
+		}
+	}
 }
