@@ -6,6 +6,7 @@ jobs:
     name: Test
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
@@ -35,6 +36,7 @@ jobs:
 
   # notifies that all test jobs are finished.
   finish:
+    if: always()
     needs: test
     runs-on: ubuntu-latest
     steps:
