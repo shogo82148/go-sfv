@@ -10,19 +10,19 @@ import (
 )
 
 func TestEncodeKeyGenerated(t *testing.T) {
-	runEncodeTestCases(t, "./testdata/serialisation-tests/key-generated.json")
+	runEncodeTestCases(t, "./testdata/structured-field-tests/serialisation-tests/key-generated.json")
 }
 
 func TestEncodeNumber(t *testing.T) {
-	runEncodeTestCases(t, "./testdata/serialisation-tests/number.json")
+	runEncodeTestCases(t, "./testdata/structured-field-tests/serialisation-tests/number.json")
 }
 
 func TestEncodeStringGenerated(t *testing.T) {
-	runEncodeTestCases(t, "./testdata/serialisation-tests/string-generated.json")
+	runEncodeTestCases(t, "./testdata/structured-field-tests/serialisation-tests/string-generated.json")
 }
 
 func TestEncodeTokenGenerated(t *testing.T) {
-	runEncodeTestCases(t, "./testdata/serialisation-tests/token-generated.json")
+	runEncodeTestCases(t, "./testdata/structured-field-tests/serialisation-tests/token-generated.json")
 }
 
 func runEncodeTestCases(t *testing.T, filename string) {
