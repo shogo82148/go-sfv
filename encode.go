@@ -142,9 +142,33 @@ func (s *encodeState) encodeKey(key string) error {
 	return nil
 }
 
-func (s *encodeState) encodeList(list List) error {
+func (s *encodeState) encodeBareItemOrInnerList(value Value) error {
+	if list, ok := value.(InnerList); ok {
+		return s.encodeInnerList(list)
+	}
+	return s.encodeBareItem(value)
+}
+
+func (s *encodeState) encodeInnerList(list InnerList) error {
+	s.buf.WriteByte('(')
 	for i, item := range list {
 		if err := s.encodeItem(item); err != nil {
+			return err
+		}
+		if i+1 < len(list) {
+			s.buf.WriteRune(' ')
+		}
+	}
+	s.buf.WriteByte(')')
+	return nil
+}
+
+func (s *encodeState) encodeList(list List) error {
+	for i, item := range list {
+		if err := s.encodeBareItemOrInnerList(item.Value); err != nil {
+			return err
+		}
+		if err := s.encodeParams(item.Parameters); err != nil {
 			return err
 		}
 		if i+1 < len(list) {
@@ -161,7 +185,7 @@ func (s *encodeState) encodeDictionary(dict Dictionary) error {
 		}
 		if item.Item.Value != true {
 			s.buf.WriteByte('=')
-			if err := s.encodeBareItem(item.Item.Value); err != nil {
+			if err := s.encodeBareItemOrInnerList(item.Item.Value); err != nil {
 				return err
 			}
 		}
