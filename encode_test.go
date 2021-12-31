@@ -69,6 +69,78 @@ func TestEncodeIntegers(t *testing.T) {
 	test(Item{
 		Value: uint64(123),
 	})
+
+	// Boundary value check
+	val, err := EncodeItem(Item{
+		Value: int64(MaxInteger),
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	if val != "999999999999999" {
+		t.Errorf("want 999999999999999, got %q", val)
+	}
+
+	_, err = EncodeItem(Item{
+		Value: int64(MaxInteger + 1),
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+
+	val, err = EncodeItem(Item{
+		Value: int64(MinInteger),
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	if val != "-999999999999999" {
+		t.Errorf("want -999999999999999, got %q", val)
+	}
+
+	_, err = EncodeItem(Item{
+		Value: int64(MinInteger - 1),
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+}
+
+func TestEncodeDecimals(t *testing.T) {
+	// Boundary value check
+	val, err := EncodeItem(Item{
+		Value: float64(MaxDecimal),
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	if val != "999999999999.999" {
+		t.Errorf("want 999999999999.999, got %q", val)
+	}
+
+	_, err = EncodeItem(Item{
+		Value: math.Nextafter(float64(MaxDecimal), math.Inf(1)),
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+
+	val, err = EncodeItem(Item{
+		Value: float64(MinDecimal),
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	if val != "-999999999999.999" {
+		t.Errorf("want -999999999999.999, got %q", val)
+	}
+
+	_, err = EncodeItem(Item{
+		Value: math.Nextafter(float64(MinDecimal), math.Inf(-1)),
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
 }
 
 func runEncodeTestCases(t *testing.T, filename string) {
