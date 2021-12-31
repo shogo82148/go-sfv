@@ -9,9 +9,9 @@ const (
 	// with more than three digits of precision in the fractional component.
 	//
 	// 0x1.d1a94a1fffffcp+39 = 999999999999.99951171875   =~ 1000000000000.000 = 1e12
-	//                                         ^ rounds here
+	//                                         ^ rounded here
 	// 0x1.d1a94a1fffffbp+39 = 999999999999.9993896484375 =~  999999999999.999 < 1e12
-	//                                         ^ rounds here
+	//                                         ^ rounded here
 
 	// The range of Decimals
 	MaxDecimal = 0x1.d1a94a1fffffbp+39  // = 999999999999.9993896484375
@@ -19,6 +19,9 @@ const (
 )
 
 // Token is a token defined in RFC 8941 Section 3.3.4. Tokens.
+// The token must match the following regular expression:
+//
+//     [a-zA-Z*][a-zA-Z0-9:/!#$%&'*+_.^_`|~-]*
 type Token string
 
 // Valid returns whether the t has valid form.
@@ -62,6 +65,9 @@ type Value interface{}
 
 // Parameter is a key-value pair of Parameters.
 type Parameter struct {
+	// Key must match the following regular expression:
+	//
+	//     [a-z*][a-z0-9_.*-]
 	Key   string
 	Value Value
 }
