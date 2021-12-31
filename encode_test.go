@@ -26,6 +26,51 @@ func TestEncodeTokenGenerated(t *testing.T) {
 	runEncodeTestCases(t, "./testdata/structured-field-tests/serialisation-tests/token-generated.json")
 }
 
+func TestEncodeIntegers(t *testing.T) {
+	test := func(item Item) {
+		t.Helper()
+		val, err := EncodeItem(item)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if val != "123" {
+			t.Errorf("want %q, got %q", "123", val)
+		}
+	}
+
+	test(Item{
+		Value: int(123),
+	})
+	test(Item{
+		Value: uint(123),
+	})
+	test(Item{
+		Value: int8(123),
+	})
+	test(Item{
+		Value: uint8(123),
+	})
+	test(Item{
+		Value: int16(123),
+	})
+	test(Item{
+		Value: uint16(123),
+	})
+	test(Item{
+		Value: int32(123),
+	})
+	test(Item{
+		Value: uint32(123),
+	})
+	test(Item{
+		Value: int64(123),
+	})
+	test(Item{
+		Value: uint64(123),
+	})
+}
+
 func runEncodeTestCases(t *testing.T, filename string) {
 	cases, err := readTestCases(filename)
 	if err != nil {

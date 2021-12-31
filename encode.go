@@ -30,15 +30,44 @@ func (s *encodeState) encodeItem(item Item) error {
 	return nil
 }
 
+func (s *encodeState) encodeInteger(v int64) error {
+	if v > MaxInteger || v < MinInteger {
+		return fmt.Errorf("integer %d is out of range", v)
+	}
+	var buf [20]byte
+	dst := strconv.AppendInt(buf[:0], v, 10)
+	s.buf.Write(dst)
+	return nil
+}
+
 func (s *encodeState) encodeBareItem(v Value) error {
 	switch v := v.(type) {
-	case int64:
-		if v > MaxInteger || v < MinInteger {
+	case int8:
+		return s.encodeInteger(int64(v))
+	case uint8:
+		return s.encodeInteger(int64(v))
+	case int16:
+		return s.encodeInteger(int64(v))
+	case uint16:
+		return s.encodeInteger(int64(v))
+	case int32:
+		return s.encodeInteger(int64(v))
+	case uint32:
+		return s.encodeInteger(int64(v))
+	case int:
+		return s.encodeInteger(int64(v))
+	case uint:
+		if v > MaxInteger {
 			return fmt.Errorf("integer %d is out of range", v)
 		}
-		var buf [20]byte
-		dst := strconv.AppendInt(buf[:0], v, 10)
-		s.buf.Write(dst)
+		return s.encodeInteger(int64(v))
+	case int64:
+		return s.encodeInteger(v)
+	case uint64:
+		if v > MaxInteger {
+			return fmt.Errorf("integer %d is out of range", v)
+		}
+		return s.encodeInteger(int64(v))
 
 	case float64:
 		i := int64(math.RoundToEven(v * 1000))
