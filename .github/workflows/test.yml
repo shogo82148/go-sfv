@@ -23,8 +23,11 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
 
+      - name: Prepare git
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
       - uses: actions/checkout@v3
-
       - name: Test
         shell: bash
         run: go test -v -coverprofile=profile.cov ./...
