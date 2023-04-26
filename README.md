@@ -1,6 +1,7 @@
 # go-sfv
 
 Go implementation for [RFC 8941 Structured Field Values for HTTP](https://www.rfc-editor.org/rfc/rfc8941.html) (SFV).
+It also supports [draft-ietf-httpbis-sfbis-02](https://datatracker.ietf.org/doc/draft-ietf-httpbis-sfbis/02/).
 
 ## Synopsis
 
@@ -16,6 +17,7 @@ case float64:   // Decimals
 case string:    // Strings
 case sfv.Token: // Tokens
 case bool:      // Booleans
+case time.Time: // Dates
 }
 
 // Decoding Lists
@@ -53,15 +55,16 @@ type Value interface{}
 
 The actual type might be one of them:
 
-| Type of SFV | Example of SFV | Type in Go      | Example in Go     |
-| ----------- | -------------- | --------------- | ----------------- |
-| Integer     | `10`           | `int64`         | `int64(10)`       |
-| Decimal     | `3.14`         | `float64`       | `float64(3.14)`   |
-| String      | `"hello"`      | `string`        | `"hello"`         |
-| Token       | `x`            | `sfv.Token`     | `sfv.Token("x")`  |
-| Byte Seq    | `:AQID:`       | `[]byte`        | `[]byte{1, 2, 3}` |
-| Boolean     | `?1`           | `bool`          | `true`            |
-| Inner List  | `(1 2)`        | `sfv.InnerList` | `sfv.InnerList{}` |
+| Type of SFV | Example of SFV | Type in Go      | Example in Go              |
+| ----------- | -------------- | --------------- | -------------------------- |
+| Integer     | `10`           | `int64`         | `int64(10)`                |
+| Decimal     | `3.14`         | `float64`       | `float64(3.14)`            |
+| String      | `"hello"`      | `string`        | `"hello"`                  |
+| Token       | `x`            | `sfv.Token`     | `sfv.Token("x")`           |
+| Byte Seq    | `:AQID:`       | `[]byte`        | `[]byte{1, 2, 3}`          |
+| Boolean     | `?1`           | `bool`          | `true`                     |
+| Date        | `@1659578233`  | `time.Time`     | `time.Unix(1659578233, 0)` |
+| Inner List  | `(1 2)`        | `sfv.InnerList` | `sfv.InnerList{}`          |
 
 ### Parameters of Items
 
@@ -121,4 +124,5 @@ type Dictionary []DictMember
 ## References
 
 - [RFC 8941 Structured Field Values for HTTP](https://www.rfc-editor.org/rfc/rfc8941.html)
+- [draft-ietf-httpbis-sfbis-02](https://datatracker.ietf.org/doc/draft-ietf-httpbis-sfbis/02/)
 - [Structured Field Values による Header Field の構造化](https://blog.jxck.io/entries/2021-01-31/structured-field-values.html)
