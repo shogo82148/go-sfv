@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 )
 
 const endOfInput = -1
@@ -228,8 +229,6 @@ type decodeState struct {
 	fields     []string
 	line, col  int
 	endOfField bool
-
-	err error
 }
 
 func (s *decodeState) peek() int {
@@ -490,6 +489,44 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 			s.next() // skip '1'
 			return true, nil
 		}
+	case ch == '@':
+		// a Date
+		s.next() // skip '@'
+
+		// check sign
+		neg := false
+		if ch := s.peek(); ch == '-' {
+			neg = true
+			s.next() // skip '-'
+		}
+
+		if !isDigit(s.peek()) {
+			return nil, s.errUnexpectedCharacter()
+		}
+
+		num := int64(0)
+		cnt := 0
+		for {
+			ch := s.peek()
+			if !isDigit(ch) {
+				break
+			}
+			s.next()
+			num = num*10 + int64(ch-'0')
+			cnt++
+			if cnt > 15 {
+				return nil, errors.New("integer overflow")
+			}
+		}
+
+		if s.peek() == '.' {
+			// a Date must not a Decimal.
+			return nil, s.errUnexpectedCharacter()
+		}
+		if neg {
+			num *= -1
+		}
+		return time.Unix(num, 0), nil
 	}
 	return nil, s.errUnexpectedCharacter()
 }
