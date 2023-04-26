@@ -33,7 +33,7 @@ func (s *encodeState) encodeItem(item Item) error {
 
 func (s *encodeState) encodeInteger(v int64) error {
 	if v > MaxInteger || v < MinInteger {
-		return fmt.Errorf("integer %d is out of range", v)
+		return fmt.Errorf("sfv: integer %d is out of range", v)
 	}
 	var buf [20]byte
 	dst := strconv.AppendInt(buf[:0], v, 10)
@@ -59,21 +59,21 @@ func (s *encodeState) encodeBareItem(v Value) error {
 		return s.encodeInteger(int64(v))
 	case uint:
 		if v > MaxInteger {
-			return fmt.Errorf("integer %d is out of range", v)
+			return fmt.Errorf("sfv: integer %d is out of range", v)
 		}
 		return s.encodeInteger(int64(v))
 	case int64:
 		return s.encodeInteger(v)
 	case uint64:
 		if v > MaxInteger {
-			return fmt.Errorf("integer %d is out of range", v)
+			return fmt.Errorf("sfv: integer %d is out of range", v)
 		}
 		return s.encodeInteger(int64(v))
 
 	case float64:
 		i := int64(math.RoundToEven(v * 1000))
 		if i > MaxInteger || i < MinInteger {
-			return fmt.Errorf("decimal %f is out of range", v)
+			return fmt.Errorf("sfv: decimal %f is out of range", v)
 		}
 
 		// write the sign
@@ -104,7 +104,7 @@ func (s *encodeState) encodeBareItem(v Value) error {
 
 	case string:
 		if !IsValidString(v) {
-			return fmt.Errorf("string %q has invalid characters", v)
+			return fmt.Errorf("sfv: string %q has invalid characters", v)
 		}
 		s.buf.WriteByte('"')
 		for _, ch := range []byte(v) {
@@ -121,7 +121,7 @@ func (s *encodeState) encodeBareItem(v Value) error {
 
 	case Token:
 		if !v.Valid() {
-			return fmt.Errorf("token %q has invalid characters", v)
+			return fmt.Errorf("sfv: token %q has invalid characters", v)
 		}
 		s.buf.WriteString(string(v))
 
@@ -143,7 +143,7 @@ func (s *encodeState) encodeBareItem(v Value) error {
 		return s.encodeInteger(v.Unix())
 
 	default:
-		return fmt.Errorf("unsupported type: %T", v)
+		return fmt.Errorf("sfv: unsupported type: %T", v)
 	}
 	return nil
 }
@@ -168,14 +168,14 @@ func (s *encodeState) encodeParams(params Parameters) error {
 func (s *encodeState) encodeKey(key string) error {
 	// validation
 	if len(key) == 0 {
-		return errors.New("key is an empty string")
+		return errors.New("sfv: key is an empty string")
 	}
 	if (key[0] < 'a' || key[0] > 'z') && key[0] != '*' {
-		return fmt.Errorf("key %q has invalid characters", key)
+		return fmt.Errorf("sfv: key %q has invalid characters", key)
 	}
 	for _, ch := range []byte(key[1:]) {
 		if !validKeyChars[ch] {
-			return fmt.Errorf("key %q has invalid characters", key)
+			return fmt.Errorf("sfv: key %q has invalid characters", key)
 		}
 	}
 	s.buf.WriteString(key)

@@ -282,9 +282,9 @@ func (s *decodeState) skipOWS() {
 func (s *decodeState) errUnexpectedCharacter() error {
 	ch := s.peek()
 	if ch == endOfInput {
-		return errors.New("unexpected the end of the input")
+		return errors.New("sfv: unexpected the end of the input")
 	}
-	return fmt.Errorf("unexpected character: %q", ch)
+	return fmt.Errorf("sfv: unexpected character: %q", ch)
 }
 
 func (s *decodeState) decodeItem() (Item, error) {
@@ -330,7 +330,7 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 			num = num*10 + int64(ch-'0')
 			cnt++
 			if cnt > 15 {
-				return nil, errors.New("integer overflow")
+				return nil, errors.New("sfv: integer overflow")
 			}
 		}
 		if s.peek() != '.' {
@@ -345,7 +345,7 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 
 		// it might be a Decimal
 		if cnt > 12 {
-			return nil, errors.New("decimal overflow")
+			return nil, errors.New("sfv: decimal overflow")
 		}
 
 		frac := 0
@@ -387,7 +387,7 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 			}
 			return ret, nil
 		}
-		return nil, errors.New("decimal has too long fractional part")
+		return nil, errors.New("sfv: decimal has too long fractional part")
 
 	case ch == '"':
 		// a String
@@ -515,7 +515,7 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 			num = num*10 + int64(ch-'0')
 			cnt++
 			if cnt > 15 {
-				return nil, errors.New("integer overflow")
+				return nil, errors.New("sfv: integer overflow")
 			}
 		}
 
@@ -662,7 +662,7 @@ func (s *decodeState) decodeList() (List, error) {
 		s.skipOWS()
 		if s.peek() == endOfInput {
 			// it is trailing comma.
-			return nil, errors.New("trailing comma is not allowed")
+			return nil, errors.New("sfv: trailing comma is not allowed")
 		}
 	}
 	return list, nil
@@ -729,7 +729,7 @@ func (s *decodeState) decodeDictionary() (Dictionary, error) {
 		s.skipOWS()
 		if s.peek() == endOfInput {
 			// it is trailing comma.
-			return nil, errors.New("trailing comma is not allowed")
+			return nil, errors.New("sfv: trailing comma is not allowed")
 		}
 	}
 	return dict, nil
