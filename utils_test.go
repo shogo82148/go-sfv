@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 type headerType string
@@ -240,17 +241,17 @@ func checkValue(t *testContext, got Value, want interface{}) {
 			t.Errorf("unexpected type: %T", got)
 		}
 	case string:
-		if got, ok := got.(string); ok {
-			if got != want {
-				t.Errorf("want %q, got %q", want, got)
+		if v, ok := got.(string); ok {
+			if v != want {
+				t.Errorf("want %q, got %q", want, v)
 			}
 		} else {
 			t.Errorf("want %T type, %T type", want, got)
 		}
 	case bool:
-		if got, ok := got.(bool); ok {
-			if got != want {
-				t.Errorf("want %t, got %t", want, got)
+		if v, ok := got.(bool); ok {
+			if v != want {
+				t.Errorf("want %t, got %t", want, v)
 			}
 		} else {
 			t.Errorf("want %T type, %T type", want, got)
@@ -261,43 +262,61 @@ func checkValue(t *testContext, got Value, want interface{}) {
 			t.Error("invalid test case: __type is not found")
 			return
 		}
-		value, ok := want["value"].(string)
-		if !ok {
+		switch value := want["value"].(type) {
+		case float64:
+			switch typ {
+			case "date":
+				if v, ok := got.(time.Time); ok {
+					want := time.Unix(int64(value), 0).UTC()
+					if !v.Equal(want) {
+						t.Errorf("want %v, got %v", want, v)
+					}
+				} else {
+					t.Errorf("want time.Time, got %T type", got)
+				}
+			default:
+				t.Errorf("invalid test case: unknown __type: %q", typ)
+			}
+		case string:
+			switch typ {
+			case "token":
+				if v, ok := got.(Token); ok {
+					if v != Token(value) {
+						t.Errorf("want Token %q, got Token %q", value, v)
+					}
+				} else {
+					t.Errorf("want Token, got %T type", got)
+				}
+			case "binary":
+				if v, ok := got.([]byte); ok {
+					want, err := base32.StdEncoding.DecodeString(value)
+					if err != nil {
+						t.Errorf("invalid test case: %v", err)
+						return
+					}
+					if !bytes.Equal(v, want) {
+						t.Errorf("want Binary %x, got Binary %x", want, v)
+					}
+				} else {
+					t.Errorf("want []byte type, got %T type", got)
+				}
+			default:
+				t.Errorf("invalid test case: unknown __type: %q", typ)
+			}
+		case nil:
 			t.Error("invalid test case: value is not found")
 			return
-		}
-		switch typ {
-		case "token":
-			if got, ok := got.(Token); ok {
-				if got != Token(value) {
-					t.Errorf("want Token %q, got Token %q", value, got)
-				}
-			} else {
-				t.Errorf("want Token, got %T type", got)
-			}
-		case "binary":
-			if got, ok := got.([]byte); ok {
-				want, err := base32.StdEncoding.DecodeString(value)
-				if err != nil {
-					t.Errorf("invalid test case: %v", err)
-					return
-				}
-				if !bytes.Equal(got, want) {
-					t.Errorf("want Binary %x, got Binary %x", want, got)
-				}
-			} else {
-				t.Errorf("want []byte type, got %T type", got)
-			}
 		default:
-			t.Errorf("invalid test case: unknown __type: %q", typ)
+			t.Error("invalid test case: unsupported value type")
+			return
 		}
 	case []interface{}:
-		if got, ok := got.(InnerList); ok {
-			if len(got) != len(want) {
-				t.Errorf("unexpected length: want %d, got %d", len(want), len(got))
+		if v, ok := got.(InnerList); ok {
+			if len(v) != len(want) {
+				t.Errorf("unexpected length: want %d, got %d", len(want), len(v))
 			}
-			for i := 0; i < len(got) && i < len(want); i++ {
-				checkItem(t.Index(i), got[i], want[i])
+			for i := 0; i < len(v) && i < len(want); i++ {
+				checkItem(t.Index(i), v[i], want[i])
 			}
 		} else {
 			t.Errorf("want InnerList type, got %T type", got)

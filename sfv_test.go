@@ -73,3 +73,7 @@ func TestBinary(t *testing.T) {
 func TestBoolean(t *testing.T) {
 	runTestCases(t, "./testdata/structured-field-tests/boolean.json")
 }
+
+func TestDate(t *testing.T) {
+	runTestCases(t, "./testdata/structured-field-tests/date.json")
+}

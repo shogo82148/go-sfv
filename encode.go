@@ -8,6 +8,7 @@ import (
 	"math"
 	"strconv"
 	"sync"
+	"time"
 )
 
 var bufPool = sync.Pool{
@@ -137,6 +138,9 @@ func (s *encodeState) encodeBareItem(v Value) error {
 		} else {
 			s.buf.WriteString("?0")
 		}
+	case time.Time:
+		s.buf.WriteString("@")
+		return s.encodeInteger(v.Unix())
 
 	default:
 		return fmt.Errorf("unsupported type: %T", v)

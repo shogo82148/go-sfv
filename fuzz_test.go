@@ -80,6 +80,7 @@ func addFuzzingData(f *testing.F) {
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/binary.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/binary.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/boolean.json")
+	addFuzzingDataFile(f, "./testdata/structured-field-tests/date.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/dictionary.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/examples.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/item.json")

@@ -21,7 +21,7 @@ const (
 // Token is a token defined in RFC 8941 Section 3.3.4. Tokens.
 // The token must match the following regular expression:
 //
-//     [a-zA-Z*][a-zA-Z0-9:/!#$%&'*+_.^_`|~-]*
+//	[a-zA-Z*][a-zA-Z0-9:/!#$%&'*+_.^_`|~-]*
 type Token string
 
 // Valid returns whether the t has valid form.
@@ -54,13 +54,14 @@ func IsValidString(s string) bool {
 // It might be Integers, Decimals, Strings, Tokens, Byte Sequences, Booleans or Inner Lists.
 // It's type is one of these:
 //
-//     int64 for Integers
-//     float64 for Decimals
-//     string for Strings
-//     Token for Tokens
-//     []byte for Byte Sequences
-//     bool for Booleans
-//     InnerList for Inner Lists
+//	int64 for Integers
+//	float64 for Decimals
+//	string for Strings
+//	Token for Tokens
+//	[]byte for Byte Sequences
+//	bool for Booleans
+//	time.Time for Date
+//	InnerList for Inner Lists
 type Value interface{}
 
 // Parameter is a key-value pair of Parameters.
