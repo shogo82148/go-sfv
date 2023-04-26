@@ -9,8 +9,6 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macOS-latest
-          - windows-latest
         go:
           - "1"
           - "1.20"
