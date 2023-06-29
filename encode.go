@@ -58,14 +58,16 @@ func (s *encodeState) encodeBareItem(v Value) error {
 	case int:
 		return s.encodeInteger(int64(v))
 	case uint:
-		if v > MaxInteger {
+		w := int(v) // this cast may overflow,
+		if w < 0 {  // so we need to check it.
 			return fmt.Errorf("sfv: integer %d is out of range", v)
 		}
 		return s.encodeInteger(int64(v))
 	case int64:
 		return s.encodeInteger(v)
 	case uint64:
-		if v > MaxInteger {
+		w := int64(v) // this cast may overflow,
+		if w < 0 {    // so we need to check it.
 			return fmt.Errorf("sfv: integer %d is out of range", v)
 		}
 		return s.encodeInteger(int64(v))
