@@ -69,8 +69,10 @@ func TestEncodeIntegers(t *testing.T) {
 	test(Item{
 		Value: uint64(123),
 	})
+}
 
-	// Boundary value check
+// Boundary value check
+func TestEncodeIntegers_boundary(t *testing.T) {
 	val, err := EncodeItem(Item{
 		Value: int64(MaxInteger),
 	})
@@ -103,6 +105,39 @@ func TestEncodeIntegers(t *testing.T) {
 	})
 	if err == nil {
 		t.Error("want error, not not")
+	}
+
+	val, err = EncodeItem(Item{
+		Value: uint64(MaxInteger),
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	if val != "999999999999999" {
+		t.Errorf("want 999999999999999, got %q", val)
+	}
+
+	_, err = EncodeItem(Item{
+		Value: uint64(MaxInteger + 1),
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+
+	_, err = EncodeItem(Item{
+		Value: uint64(math.MaxInt64 + 1),
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+
+	if math.MaxInt >= MaxInteger {
+		_, err = EncodeItem(Item{
+			Value: uint(math.MaxInt64 + 1),
+		})
+		if err == nil {
+			t.Error("want error, not not")
+		}
 	}
 }
 

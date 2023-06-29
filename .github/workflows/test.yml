@@ -15,7 +15,6 @@ jobs:
           - "1.19"
           - "1.18"
           - "1.17"
-          - "1.16"
 
     steps:
       - name: Prepare git
@@ -23,7 +22,6 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.eol lf
       - uses: actions/checkout@v3
-
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v4
         with:
@@ -48,3 +46,13 @@ jobs:
       - uses: shogo82148/actions-goveralls@v1
         with:
           parallel-finished: true
+
+  compile-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "stable"
+      - run: |
+          ./.github/compile_check.sh
