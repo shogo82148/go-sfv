@@ -403,6 +403,102 @@ func readDictionary(v interface{}) (Dictionary, error) {
 	return ret, nil
 }
 
+func TestEncode_invalidTypes(t *testing.T) {
+	var err error
+
+	// in Items
+	_, err = EncodeItem(Item{
+		Value: make(chan int),
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+
+	// in Parameters
+	_, err = EncodeItem(Item{
+		Value: 1,
+		Parameters: []Parameter{
+			{
+				Key:   "invalid",
+				Value: make(chan int),
+			},
+		},
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+
+	// in InnerLists
+	_, err = EncodeList(List{
+		Item{
+			Value: InnerList{
+				Item{
+					Value: make(chan int),
+				},
+			},
+		},
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+
+	// in Lists
+	_, err = EncodeList(List{
+		Item{
+			Value: make(chan int),
+		},
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+
+	_, err = EncodeList(List{
+		Item{
+			Value: 1,
+			Parameters: []Parameter{
+				{
+					Key:   "invalid",
+					Value: make(chan int),
+				},
+			},
+		},
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+
+	// in Dictionaries
+	_, err = EncodeDictionary(Dictionary{
+		DictMember{
+			Key: "invalid",
+			Item: Item{
+				Value: make(chan int),
+			},
+		},
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+
+	_, err = EncodeDictionary(Dictionary{
+		DictMember{
+			Key: "invalid",
+			Item: Item{
+				Value: 1,
+				Parameters: []Parameter{
+					{
+						Key:   "invalid",
+						Value: make(chan int),
+					},
+				},
+			},
+		},
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+}
+
 func BenchmarkEncodeItem(b *testing.B) {
 	item := Item{
 		Value: []byte("こんにちわ〜o(^^)o"),
