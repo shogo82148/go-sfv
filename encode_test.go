@@ -403,6 +403,30 @@ func readDictionary(v interface{}) (Dictionary, error) {
 	return ret, nil
 }
 
+func TestEncode_invalidTypes(t *testing.T) {
+	var err error
+
+	_, err = EncodeItem(Item{
+		Value: make(chan int),
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+
+	_, err = EncodeItem(Item{
+		Value: 1,
+		Parameters: []Parameter{
+			{
+				Key:   "invalid",
+				Value: make(chan int),
+			},
+		},
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+}
+
 func BenchmarkEncodeItem(b *testing.B) {
 	item := Item{
 		Value: []byte("こんにちわ〜o(^^)o"),
