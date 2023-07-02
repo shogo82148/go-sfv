@@ -26,6 +26,11 @@ func TestEncodeTokenGenerated(t *testing.T) {
 	runEncodeTestCases(t, "./testdata/structured-field-tests/serialisation-tests/token-generated.json")
 }
 
+func TestEncodeExtra(t *testing.T) {
+	// This test is not part of the structured-field-tests suite.
+	runEncodeTestCases(t, "./testdata/extra-serialization.json")
+}
+
 func TestEncodeIntegers(t *testing.T) {
 	test := func(item Item) {
 		t.Helper()
@@ -185,6 +190,7 @@ func runEncodeTestCases(t *testing.T, filename string) {
 	}
 
 	for _, tt := range cases {
+		tt := tt
 		t.Run(tt.Name, func(t *testing.T) {
 			canonical := strings.Join(tt.Canonical, ",")
 
