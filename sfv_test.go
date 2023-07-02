@@ -78,6 +78,11 @@ func TestDate(t *testing.T) {
 	runTestCases(t, "./testdata/structured-field-tests/date.json")
 }
 
+func TestExtra(t *testing.T) {
+	// This test is not part of the structured-field-tests suite.
+	runTestCases(t, "./testdata/extra.json")
+}
+
 func TestToken_Valid(t *testing.T) {
 	cases := []struct {
 		in   string
