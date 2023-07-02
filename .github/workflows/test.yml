@@ -11,10 +11,18 @@ jobs:
           - ubuntu-latest
         go:
           - "1"
+          - "1.21.0-rc.2"
           - "1.20"
           - "1.19"
           - "1.18"
           - "1.17"
+        goexperiment: [""]
+        includes:
+          # test with GOEXPERIMENT=loopvar
+          # https://github.com/golang/go/wiki/LoopvarExperiment
+          - os: ubuntu-latest
+            go: "1.21.0-rc.2"
+            goexperiment: "loopvar"
 
     steps:
       - name: Prepare git
@@ -30,6 +38,8 @@ jobs:
       - name: Test
         shell: bash
         run: go test -v -coverprofile=profile.cov ./...
+        env:
+          GOEXPERIMENT: ${{ matrix.goexperiment }}
 
       - uses: shogo82148/actions-goveralls@v1
         with:
