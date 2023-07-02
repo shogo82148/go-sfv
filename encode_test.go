@@ -176,6 +176,17 @@ func TestEncodeDecimals(t *testing.T) {
 	if err == nil {
 		t.Error("want error, not not")
 	}
+
+	// encoding float32
+	val, err = EncodeItem(Item{
+		Value: float32(1.0),
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	if val != "1.0" {
+		t.Errorf("want 1.0, got %q", val)
+	}
 }
 
 func runEncodeTestCases(t *testing.T, filename string) {

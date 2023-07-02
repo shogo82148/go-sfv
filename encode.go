@@ -41,6 +41,41 @@ func (s *encodeState) encodeInteger(v int64) error {
 	return nil
 }
 
+func (s *encodeState) encodeDecimal(v float64) error {
+	i := int64(math.RoundToEven(v * 1000))
+	if i > MaxInteger || i < MinInteger {
+		return fmt.Errorf("sfv: decimal %f is out of range", v)
+	}
+
+	// write the sign
+	if i < 0 {
+		s.buf.WriteByte('-')
+		i *= -1
+	}
+
+	// integer component
+	var buf [20]byte
+	dst := strconv.AppendInt(buf[:0], i/1000, 10)
+	s.buf.Write(dst)
+
+	// fractional component
+	frac := i % 1000
+	s.buf.WriteByte('.')
+	s.buf.WriteByte(byte(frac/100) + '0')
+	frac %= 100
+	if frac == 0 {
+		return nil // omit trailing zeros
+	}
+	s.buf.WriteByte(byte(frac/10) + '0')
+	frac %= 10
+	if frac == 0 {
+		return nil // omit trailing zeros
+	}
+	s.buf.WriteByte(byte(frac) + '0')
+
+	return nil
+}
+
 func (s *encodeState) encodeBareItem(v Value) error {
 	switch v := v.(type) {
 	case int8:
@@ -73,36 +108,9 @@ func (s *encodeState) encodeBareItem(v Value) error {
 		return s.encodeInteger(int64(v))
 
 	case float64:
-		i := int64(math.RoundToEven(v * 1000))
-		if i > MaxInteger || i < MinInteger {
-			return fmt.Errorf("sfv: decimal %f is out of range", v)
-		}
-
-		// write the sign
-		if i < 0 {
-			s.buf.WriteByte('-')
-			i *= -1
-		}
-
-		// integer component
-		var buf [20]byte
-		dst := strconv.AppendInt(buf[:0], i/1000, 10)
-		s.buf.Write(dst)
-
-		// fractional component
-		frac := i % 1000
-		s.buf.WriteByte('.')
-		s.buf.WriteByte(byte(frac/100) + '0')
-		frac %= 100
-		if frac == 0 {
-			break // omit trailing zeros
-		}
-		s.buf.WriteByte(byte(frac/10) + '0')
-		frac %= 10
-		if frac == 0 {
-			break // omit trailing zeros
-		}
-		s.buf.WriteByte(byte(frac) + '0')
+		return s.encodeDecimal(v)
+	case float32:
+		return s.encodeDecimal(float64(v))
 
 	case string:
 		if !IsValidString(v) {
