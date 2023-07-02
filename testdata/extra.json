@@ -1,0 +1,67 @@
+[
+    {
+        "name": "extra: negative decimal with one fractional digits",
+        "raw": [
+            "-1.1"
+        ],
+        "header_type": "item",
+        "expected": [
+            -1.1,
+            []
+        ]
+    },
+    {
+        "name": "extra: negative decimal with no digits",
+        "raw": [
+            "-1."
+        ],
+        "header_type": "item",
+        "must_fail": true
+    },
+    {
+        "name": "extra: long date - 3914159-11-26 23:25:45",
+        "raw": [
+            "@123456789012345"
+        ],
+        "header_type": "item",
+        "expected": [
+            {
+                "__type": "date",
+                "value": 123456789012345
+            },
+            []
+        ]
+    },
+    {
+        "name": "extra: long date - 39123869-01-14 18:17:36",
+        "raw": [
+            "@1234567890123456"
+        ],
+        "header_type": "item",
+        "must_fail": true
+    },
+    {
+        "name": "extra: error in parameterized list",
+        "raw": [
+            "text/html;q=.8"
+        ],
+        "header_type": "list",
+        "must_fail": true
+    },
+    {
+        "name": "extra: parameterized item error after inner list",
+        "raw": [
+            "(a b);q=.8"
+        ],
+        "header_type": "list",
+        "must_fail": true
+    },
+    {
+        "name": "extra: invalid boolean value in inner list",
+        "raw": [
+            "(?2)"
+        ],
+        "header_type": "list",
+        "must_fail": true
+    }
+]

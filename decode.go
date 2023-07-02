@@ -488,6 +488,8 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 		case '1':
 			s.next() // skip '1'
 			return true, nil
+		default:
+			return nil, s.errUnexpectedCharacter()
 		}
 	case ch == '@':
 		// a Date
