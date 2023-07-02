@@ -41,6 +41,7 @@ func (t Token) Valid() bool {
 	return true
 }
 
+// IsValidString returns whether the s has valid form.
 func IsValidString(s string) bool {
 	for _, ch := range []byte(s) {
 		if ch < 0x20 || ch >= 0x7f {

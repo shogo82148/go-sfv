@@ -77,3 +77,69 @@ func TestBoolean(t *testing.T) {
 func TestDate(t *testing.T) {
 	runTestCases(t, "./testdata/structured-field-tests/date.json")
 }
+
+func TestToken_Valid(t *testing.T) {
+	cases := []struct {
+		in   string
+		want bool
+	}{
+		{"", false},
+		{"*", true},
+		{"a", true},
+		{"z", true},
+		{"A", true},
+		{"Z", true},
+		{"0", false},
+		{":", false},
+		{"/", false},
+		{"!", false},
+		{"\"", false},
+		{"#", false},
+		{"$", false},
+		{"%", false},
+		{"&", false},
+		{"'", false},
+		{"(", false},
+		{")", false},
+		{"aa", true},
+		{"aA", true},
+		{"a0", true},
+		{"a:", true},
+		{"a/", true},
+	}
+	for _, c := range cases {
+		if got := Token(c.in).Valid(); got != c.want {
+			t.Errorf("Token(%q).Valid() = %v, want %v", c.in, got, c.want)
+		}
+	}
+}
+
+func TestIsValidString(t *testing.T) {
+	cases := []struct {
+		in   string
+		want bool
+	}{
+		{"", true},
+		{"*", true},
+		{"a", true},
+		{"z", true},
+		{"A", true},
+		{"Z", true},
+		{"0", true},
+		{"9", true},
+		{"~", true},
+		{"aa", true},
+		{" ", true},
+		{"\t", false},
+		{"\a", false},
+		{"\n", false},
+		{"\r", false},
+		{"\f", false},
+		{"\u0080", false},
+	}
+	for _, c := range cases {
+		if got := IsValidString(c.in); got != c.want {
+			t.Errorf("isValidString(%q) = %v, want %v", c.in, got, c.want)
+		}
+	}
+}
