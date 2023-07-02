@@ -51,6 +51,7 @@ func runTestCases(t *testing.T, filename string) {
 	}
 
 	for _, tt := range cases {
+		tt := tt
 		t.Run(tt.Name, func(t *testing.T) {
 			var canonical string
 			if tt.Canonical != nil {

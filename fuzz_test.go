@@ -96,6 +96,7 @@ func addFuzzingData(f *testing.F) {
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/string.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/token-generated.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/token.json")
+	addFuzzingDataFile(f, "./testdata/extra.json")
 }
 
 func addFuzzingDataFile(f *testing.F, filename string) {

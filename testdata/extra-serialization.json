@@ -1,0 +1,35 @@
+[
+    {
+        "name": "extra: empty dictionary key",
+        "header_type": "dictionary",
+        "expected": [
+            [
+                "",
+                [
+                    1,
+                    []
+                ]
+            ]
+        ],
+        "must_fail": true
+    },
+    {
+        "name": "extra: empty parameter key",
+        "header_type": "dictionary",
+        "expected": [
+            [
+                "foo",
+                [
+                    1,
+                    [
+                        [
+                            "",
+                            1
+                        ]
+                    ]
+                ]
+            ]
+        ],
+        "must_fail": true
+    }
+]
