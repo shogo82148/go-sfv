@@ -336,6 +336,7 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 	switch {
 	case ch == '-' || isDigit(ch):
 		// an Integer or Decimal
+		return s.decodeIntegerOrDecimal()
 
 	case ch == '"':
 		// a String
@@ -407,7 +408,7 @@ func (s *decodeState) decodeIntegerOrDecimal() (Value, error) {
 	}
 
 	frac := 0
-	ch := s.peek()
+	ch = s.peek()
 	if !isDigit(ch) {
 		// fractional part MUST NOT be empty.
 		return nil, s.errUnexpectedCharacter()
