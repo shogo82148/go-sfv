@@ -303,6 +303,7 @@ func (s *decodeState) skipOWS() {
 	}
 }
 
+// errUnexpectedCharacter returns an error for unexpected character.
 func (s *decodeState) errUnexpectedCharacter() error {
 	ch := s.peek()
 	if ch == endOfInput {
@@ -311,6 +312,7 @@ func (s *decodeState) errUnexpectedCharacter() error {
 	return fmt.Errorf("sfv: unexpected character: %q", ch)
 }
 
+// decodeItem parses an Item according to RFC 8941 Section 4.2.3.
 func (s *decodeState) decodeItem() (Item, error) {
 	v, err := s.decodeBareItem()
 	if err != nil {
@@ -328,90 +330,12 @@ func (s *decodeState) decodeItem() (Item, error) {
 	}, nil
 }
 
+// decodeBareItem parses a bare item according to RFC 8941 Section 4.2.3.1.
 func (s *decodeState) decodeBareItem() (Value, error) {
 	ch := s.peek()
 	switch {
 	case ch == '-' || isDigit(ch):
 		// an Integer or Decimal
-		neg := false
-		if ch == '-' {
-			neg = true
-			s.next()
-
-			if !isDigit(s.peek()) {
-				return nil, s.errUnexpectedCharacter()
-			}
-		}
-
-		num := int64(0)
-		cnt := 0
-		for {
-			ch := s.peek()
-			if !isDigit(ch) {
-				break
-			}
-			s.next()
-			num = num*10 + int64(ch-'0')
-			cnt++
-			if cnt > 15 {
-				return nil, errors.New("sfv: integer overflow")
-			}
-		}
-		if s.peek() != '.' {
-			// it is an Integer
-			if neg {
-				num *= -1
-			}
-			return num, nil
-		}
-		// current character is '.'
-		s.next() // skip '.'
-
-		// it might be a Decimal
-		if cnt > 12 {
-			return nil, errors.New("sfv: decimal overflow")
-		}
-
-		frac := 0
-		ch := s.peek()
-		if !isDigit(ch) {
-			// fractional part MUST NOT be empty.
-			return nil, s.errUnexpectedCharacter()
-		}
-		s.next()
-		frac = frac*10 + int(ch-'0')
-
-		ch = s.peek()
-		if !isDigit(ch) {
-			ret := float64(num) + float64(frac)/10
-			if neg {
-				ret *= -1
-			}
-			return ret, nil
-		}
-		s.next()
-		frac = frac*10 + int(ch-'0')
-
-		ch = s.peek()
-		if !isDigit(ch) {
-			ret := float64(num) + float64(frac)/100
-			if neg {
-				ret *= -1
-			}
-			return ret, nil
-		}
-		s.next()
-		frac = frac*10 + int(ch-'0')
-
-		ch = s.peek()
-		if !isDigit(ch) {
-			ret := float64(num) + float64(frac)/1000
-			if neg {
-				ret *= -1
-			}
-			return ret, nil
-		}
-		return nil, errors.New("sfv: decimal has too long fractional part")
 
 	case ch == '"':
 		// a String
@@ -438,6 +362,90 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 		return s.decodeDisplayString()
 	}
 	return nil, s.errUnexpectedCharacter()
+}
+
+// decodeIntegerOrDecimal parses an Integer or Decimal according to RFC 8941 Section 4.2.4.
+func (s *decodeState) decodeIntegerOrDecimal() (Value, error) {
+	ch := s.peek()
+	neg := false
+	if ch == '-' {
+		neg = true
+		s.next()
+
+		if !isDigit(s.peek()) {
+			return nil, s.errUnexpectedCharacter()
+		}
+	}
+
+	num := int64(0)
+	cnt := 0
+	for {
+		ch := s.peek()
+		if !isDigit(ch) {
+			break
+		}
+		s.next()
+		num = num*10 + int64(ch-'0')
+		cnt++
+		if cnt > 15 {
+			return nil, errors.New("sfv: integer overflow")
+		}
+	}
+	if s.peek() != '.' {
+		// it is an Integer
+		if neg {
+			num *= -1
+		}
+		return num, nil
+	}
+	// current character is '.'
+	s.next() // skip '.'
+
+	// it might be a Decimal
+	if cnt > 12 {
+		return nil, errors.New("sfv: decimal overflow")
+	}
+
+	frac := 0
+	ch := s.peek()
+	if !isDigit(ch) {
+		// fractional part MUST NOT be empty.
+		return nil, s.errUnexpectedCharacter()
+	}
+	s.next()
+	frac = frac*10 + int(ch-'0')
+
+	ch = s.peek()
+	if !isDigit(ch) {
+		ret := float64(num) + float64(frac)/10
+		if neg {
+			ret *= -1
+		}
+		return ret, nil
+	}
+	s.next()
+	frac = frac*10 + int(ch-'0')
+
+	ch = s.peek()
+	if !isDigit(ch) {
+		ret := float64(num) + float64(frac)/100
+		if neg {
+			ret *= -1
+		}
+		return ret, nil
+	}
+	s.next()
+	frac = frac*10 + int(ch-'0')
+
+	ch = s.peek()
+	if !isDigit(ch) {
+		ret := float64(num) + float64(frac)/1000
+		if neg {
+			ret *= -1
+		}
+		return ret, nil
+	}
+	return nil, errors.New("sfv: decimal has too long fractional part")
 }
 
 // decodeString parses a String according to RFC 8941 Section 4.2.5.
