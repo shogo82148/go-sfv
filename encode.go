@@ -16,12 +16,22 @@ var hexBytes = "0123456789abcdef"
 
 var bufPool = sync.Pool{
 	New: func() interface{} {
-		return new(bytes.Buffer)
+		return new(encodeState)
 	},
 }
 
+func getEncodeState() *encodeState {
+	s := bufPool.Get().(*encodeState)
+	s.buf.Reset()
+	return s
+}
+
+func putEncodeState(s *encodeState) {
+	bufPool.Put(s)
+}
+
 type encodeState struct {
-	buf *bytes.Buffer
+	buf bytes.Buffer
 }
 
 // encodeItem serializes an item according to RFC 8941 Section 4.1.3.
@@ -165,7 +175,7 @@ func (s *encodeState) encodeBareItem(v Value) error {
 
 	case []byte:
 		s.buf.WriteByte(':')
-		w := base64.NewEncoder(base64.StdEncoding, s.buf)
+		w := base64.NewEncoder(base64.StdEncoding, &s.buf)
 		w.Write(v)
 		w.Close()
 		s.buf.WriteByte(':')
@@ -289,11 +299,9 @@ func (s *encodeState) encodeDictionary(dict Dictionary) error {
 
 // EncodeItem encodes the given item to Structured Field Values.
 func EncodeItem(item Item) (string, error) {
-	buf := bufPool.Get().(*bytes.Buffer)
-	defer bufPool.Put(buf)
+	state := getEncodeState()
+	defer putEncodeState(state)
 
-	buf.Reset()
-	state := &encodeState{buf: buf}
 	if err := state.encodeItem(item); err != nil {
 		return "", err
 	}
@@ -302,11 +310,9 @@ func EncodeItem(item Item) (string, error) {
 
 // EncodeList encodes the given list to Structured Field Values.
 func EncodeList(list List) (string, error) {
-	buf := bufPool.Get().(*bytes.Buffer)
-	defer bufPool.Put(buf)
+	state := getEncodeState()
+	defer putEncodeState(state)
 
-	buf.Reset()
-	state := &encodeState{buf: buf}
 	if err := state.encodeList(list); err != nil {
 		return "", err
 	}
@@ -315,11 +321,9 @@ func EncodeList(list List) (string, error) {
 
 // EncodeDictionary encodes the given dictionary to Structured Field Values.
 func EncodeDictionary(dict Dictionary) (string, error) {
-	buf := bufPool.Get().(*bytes.Buffer)
-	defer bufPool.Put(buf)
+	state := getEncodeState()
+	defer putEncodeState(state)
 
-	buf.Reset()
-	state := &encodeState{buf: buf}
 	if err := state.encodeDictionary(dict); err != nil {
 		return "", err
 	}
