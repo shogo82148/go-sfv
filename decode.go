@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 const endOfInput = -1
@@ -221,8 +222,31 @@ var validBase64Chars = [256]bool{
 	'z': true,
 }
 
+// isDigit reports whether ch is a decimal digit.
 func isDigit(ch int) bool {
 	return ch >= '0' && ch <= '9'
+}
+
+// lower(c) is a lower-case letter if and only if
+// c is either that lower-case letter or the equivalent upper-case letter.
+// Instead of writing c == 'x' || c == 'X' one can write lower(c) == 'x'.
+// Note that lower of non-letters can produce other non-letters.
+func lower(c int) int {
+	return c | ('x' - 'X')
+}
+
+// isHexDigit reports whether ch is a hexadecimal digit.
+func isHexDigit(ch int) bool {
+	return isDigit(ch) || (lower(ch) >= 'a' && lower(ch) <= 'f')
+}
+
+// hex returns the value of the hexadecimal digit.
+// isHexDigit(ch) must be true.
+func hex(ch int) byte {
+	if ch >= '0' && ch <= '9' {
+		return byte(ch - '0')
+	}
+	return byte(lower(ch) - 'a' + 10)
 }
 
 type decodeState struct {
@@ -529,8 +553,55 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 			num *= -1
 		}
 		return time.Unix(num, 0), nil
+
+	case ch == '%':
+		// a Display String
+		return s.decodeDisplayString()
 	}
 	return nil, s.errUnexpectedCharacter()
+}
+
+func (s *decodeState) decodeDisplayString() (Value, error) {
+	s.next() // skip '%'
+
+	// next character must be DQUOTE.
+	if ch := s.peek(); ch != '"' {
+		return nil, s.errUnexpectedCharacter()
+	}
+	s.next() // skip '"'
+
+	var buf strings.Builder
+	for {
+		ch := s.peek()
+		if ch <= 0x1f || ch >= 0x7f {
+			return nil, s.errUnexpectedCharacter()
+		}
+		s.next()
+
+		if ch == '%' {
+			// %-encoded character
+			digit1 := s.peek()
+			if !isHexDigit(digit1) {
+				return nil, s.errUnexpectedCharacter()
+			}
+			s.next()
+			digit2 := s.peek()
+			if !isHexDigit(digit2) {
+				return nil, s.errUnexpectedCharacter()
+			}
+			s.next()
+			buf.WriteByte(hex(digit1)<<4 | hex(digit2))
+		} else if ch == '"' {
+			// the end of a Display String
+			str := buf.String()
+			if !utf8.ValidString(str) {
+				return nil, errors.New("sfv: invalid UTF-8 sequence")
+			}
+			return DisplayString(str), nil
+		} else {
+			buf.WriteByte(byte(ch))
+		}
+	}
 }
 
 func (s *decodeState) decodeParameters() (Parameters, error) {

@@ -301,6 +301,14 @@ func checkValue(t *testContext, got Value, want interface{}) {
 				} else {
 					t.Errorf("want []byte type, got %T type", got)
 				}
+			case "displaystring":
+				if v, ok := got.(DisplayString); ok {
+					if v != DisplayString(value) {
+						t.Errorf("want DisplayString %q, got DisplayString %q", value, v)
+					}
+				} else {
+					t.Errorf("want DisplayString, got %T type", got)
+				}
 			default:
 				t.Errorf("invalid test case: unknown __type: %q", typ)
 			}

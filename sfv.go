@@ -51,6 +51,9 @@ func IsValidString(s string) bool {
 	return true
 }
 
+// DisplayString is a unicode string.
+type DisplayString string
+
 // Value is a bare item.
 // It might be Integers, Decimals, Strings, Tokens, Byte Sequences, Booleans or Inner Lists.
 // It's type is one of these:

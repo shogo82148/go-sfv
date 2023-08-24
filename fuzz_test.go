@@ -72,16 +72,14 @@ func FuzzDecodeDictionary(f *testing.F) {
 }
 
 func addFuzzingData(f *testing.F) {
-	addFuzzingDataFile(f, "./testdata/structured-field-tests/serialisation-tests/key-generated.json")
-	addFuzzingDataFile(f, "./testdata/structured-field-tests/serialisation-tests/number.json")
-	addFuzzingDataFile(f, "./testdata/structured-field-tests/serialisation-tests/string-generated.json")
-	addFuzzingDataFile(f, "./testdata/structured-field-tests/serialisation-tests/token-generated.json")
+	addFuzzingDataFile(f, "./testdata/extra.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/binary.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/binary.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/binary.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/boolean.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/date.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/dictionary.json")
+	addFuzzingDataFile(f, "./testdata/structured-field-tests/display-string.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/examples.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/item.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/key-generated.json")
@@ -92,11 +90,14 @@ func addFuzzingData(f *testing.F) {
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/param-dict.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/param-list.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/param-listlist.json")
+	addFuzzingDataFile(f, "./testdata/structured-field-tests/serialisation-tests/key-generated.json")
+	addFuzzingDataFile(f, "./testdata/structured-field-tests/serialisation-tests/number.json")
+	addFuzzingDataFile(f, "./testdata/structured-field-tests/serialisation-tests/string-generated.json")
+	addFuzzingDataFile(f, "./testdata/structured-field-tests/serialisation-tests/token-generated.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/string-generated.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/string.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/token-generated.json")
 	addFuzzingDataFile(f, "./testdata/structured-field-tests/token.json")
-	addFuzzingDataFile(f, "./testdata/extra.json")
 }
 
 func addFuzzingDataFile(f *testing.F, filename string) {
