@@ -462,45 +462,7 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 
 	case ch == ':':
 		// a Byte Sequence
-		s.next() // skip ':'
-		var buf bytes.Buffer
-		for {
-			ch := s.peek()
-			switch {
-			case ch == endOfInput:
-				return nil, s.errUnexpectedCharacter()
-			case ch == ':':
-				// the end of a Binary
-				s.next() // skip ':'
-
-				// add missing "=" padding
-				// RFC 8941 says that parsers SHOULD NOT fail when "=" padding is not present.
-				switch buf.Len() % 4 {
-				case 0:
-				case 1:
-					buf.WriteByte('=')
-					fallthrough
-				case 2:
-					buf.WriteByte('=')
-					fallthrough
-				case 3:
-					buf.WriteByte('=')
-				}
-
-				enc := base64.StdEncoding
-				ret := make([]byte, enc.DecodedLen(buf.Len()))
-				n, err := enc.Decode(ret, buf.Bytes())
-				if err != nil {
-					return nil, err
-				}
-				return ret[:n], nil
-			case validBase64Chars[ch]:
-				s.next()
-				buf.WriteByte(byte(ch))
-			default:
-				return nil, s.errUnexpectedCharacter()
-			}
-		}
+		return s.decodeByteSequence()
 
 	case ch == '?':
 		// a Boolean
@@ -515,6 +477,52 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 		return s.decodeDisplayString()
 	}
 	return nil, s.errUnexpectedCharacter()
+}
+
+// decodeBytesSequence parses a Byte Sequence according to RFC 8941 Section 4.2.7.
+func (s *decodeState) decodeByteSequence() (Value, error) {
+	if ch := s.peek(); ch != ':' {
+		return nil, s.errUnexpectedCharacter()
+	}
+	s.next() // skip ':'
+	var buf bytes.Buffer
+	for {
+		ch := s.peek()
+		switch {
+		case ch == endOfInput:
+			return nil, s.errUnexpectedCharacter()
+		case ch == ':':
+			// the end of a Binary
+			s.next() // skip ':'
+
+			// add missing "=" padding
+			// RFC 8941 says that parsers SHOULD NOT fail when "=" padding is not present.
+			switch buf.Len() % 4 {
+			case 0:
+			case 1:
+				buf.WriteByte('=')
+				fallthrough
+			case 2:
+				buf.WriteByte('=')
+				fallthrough
+			case 3:
+				buf.WriteByte('=')
+			}
+
+			enc := base64.StdEncoding
+			ret := make([]byte, enc.DecodedLen(buf.Len()))
+			n, err := enc.Decode(ret, buf.Bytes())
+			if err != nil {
+				return nil, err
+			}
+			return ret[:n], nil
+		case validBase64Chars[ch]:
+			s.next()
+			buf.WriteByte(byte(ch))
+		default:
+			return nil, s.errUnexpectedCharacter()
+		}
+	}
 }
 
 // decodeBoolean parses a Boolean according to RFC 8941 Section 4.2.8.
