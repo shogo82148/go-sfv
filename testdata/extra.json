@@ -71,5 +71,268 @@
         ],
         "header_type": "item",
         "must_fail": true
+    },
+    {
+        "name": "extra: example of Accept-CH header (https://wicg.github.io/ua-client-hints/)",
+        "raw": [
+            "\"Examplary Browser\"; v=\"73\", \";Not?A.Brand\"; v=\"27\""
+        ],
+        "canonical": [
+            "\"Examplary Browser\";v=\"73\", \";Not?A.Brand\";v=\"27\""
+        ],
+        "header_type": "list",
+        "expected": [
+            [
+                "Examplary Browser",
+                [
+                    [
+                        "v",
+                        "73"
+                    ]
+                ]
+            ],
+            [
+                ";Not?A.Brand",
+                [
+                    [
+                        "v",
+                        "27"
+                    ]
+                ]
+            ]
+        ]
+    },
+    {
+        "name": "extra: example of Cache-Status header (RFC 9211)",
+        "raw": [
+            "ExampleCache; hit",
+            "ExampleCache; hit; ttl=376",
+            "ExampleCache; hit; ttl=-412",
+            "ExampleCache; fwd=uri-miss",
+            "ExampleCache; fwd=stale; fwd-status=304",
+            "ExampleCache; fwd=uri-miss; collapsed",
+            "ExampleCache; fwd=uri-miss; collapsed=?0",
+            "OriginCache; hit; ttl=1100, \"CDN Company Here\"; hit; ttl=545",
+            "ReverseProxyCache; hit",
+            "ForwardProxyCache; fwd=uri-miss; collapsed; stored",
+            "BrowserCache; fwd=uri-miss"
+        ],
+        "canonical": [
+            "ExampleCache;hit, ExampleCache;hit;ttl=376, ExampleCache;hit;ttl=-412, ExampleCache;fwd=uri-miss, ExampleCache;fwd=stale;fwd-status=304, ExampleCache;fwd=uri-miss;collapsed, ExampleCache;fwd=uri-miss;collapsed=?0, OriginCache;hit;ttl=1100, \"CDN Company Here\";hit;ttl=545, ReverseProxyCache;hit, ForwardProxyCache;fwd=uri-miss;collapsed;stored, BrowserCache;fwd=uri-miss"
+        ],
+        "header_type": "list",
+        "expected": [
+            [
+                {
+                    "__type": "token",
+                    "value": "ExampleCache"
+                },
+                [
+                    [
+                        "hit",
+                        true
+                    ]
+                ]
+            ],
+            [
+                {
+                    "__type": "token",
+                    "value": "ExampleCache"
+                },
+                [
+                    [
+                        "hit",
+                        true
+                    ],
+                    [
+                        "ttl",
+                        376
+                    ]
+                ]
+            ],
+            [
+                {
+                    "__type": "token",
+                    "value": "ExampleCache"
+                },
+                [
+                    [
+                        "hit",
+                        true
+                    ],
+                    [
+                        "ttl",
+                        -412
+                    ]
+                ]
+            ],
+            [
+                {
+                    "__type": "token",
+                    "value": "ExampleCache"
+                },
+                [
+                    [
+                        "fwd",
+                        {
+                            "__type": "token",
+                            "value": "uri-miss"
+                        }
+                    ]
+                ]
+            ],
+            [
+                {
+                    "__type": "token",
+                    "value": "ExampleCache"
+                },
+                [
+                    [
+                        "fwd",
+                        {
+                            "__type": "token",
+                            "value": "stale"
+                        }
+                    ],
+                    [
+                        "fwd-status",
+                        304
+                    ]
+                ]
+            ],
+            [
+                {
+                    "__type": "token",
+                    "value": "ExampleCache"
+                },
+                [
+                    [
+                        "fwd",
+                        {
+                            "__type": "token",
+                            "value": "uri-miss"
+                        }
+                    ],
+                    [
+                        "collapsed",
+                        true
+                    ]
+                ]
+            ],
+            [
+                {
+                    "__type": "token",
+                    "value": "ExampleCache"
+                },
+                [
+                    [
+                        "fwd",
+                        {
+                            "__type": "token",
+                            "value": "uri-miss"
+                        }
+                    ],
+                    [
+                        "collapsed",
+                        false
+                    ]
+                ]
+            ],
+            [
+                {
+                    "__type": "token",
+                    "value": "OriginCache"
+                },
+                [
+                    [
+                        "hit",
+                        true
+                    ],
+                    [
+                        "ttl",
+                        1100
+                    ]
+                ]
+            ],
+            [
+                "CDN Company Here",
+                [
+                    [
+                        "hit",
+                        true
+                    ],
+                    [
+                        "ttl",
+                        545
+                    ]
+                ]
+            ],
+            [
+                {
+                    "__type": "token",
+                    "value": "ReverseProxyCache"
+                },
+                [
+                    [
+                        "hit",
+                        true
+                    ]
+                ]
+            ],
+            [
+                {
+                    "__type": "token",
+                    "value": "ForwardProxyCache"
+                },
+                [
+                    [
+                        "fwd",
+                        {
+                            "__type": "token",
+                            "value": "uri-miss"
+                        }
+                    ],
+                    [
+                        "collapsed",
+                        true
+                    ],
+                    [
+                        "stored",
+                        true
+                    ]
+                ]
+            ],
+            [
+                {
+                    "__type": "token",
+                    "value": "BrowserCache"
+                },
+                [
+                    [
+                        "fwd",
+                        {
+                            "__type": "token",
+                            "value": "uri-miss"
+                        }
+                    ]
+                ]
+            ]
+        ]
+    },
+    {
+        "name": "extra: example of CDN-Cache-Control header (RFC 9213)",
+        "raw": [
+            "max-age=3600"
+        ],
+        "header_type": "dictionary",
+        "expected": [
+            [
+                "max-age",
+                [
+                    3600,
+                    []
+                ]
+            ]
+        ]
     }
 ]
