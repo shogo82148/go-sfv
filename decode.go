@@ -504,17 +504,8 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 
 	case ch == '?':
 		// a Boolean
-		s.next() // skip '?'
-		switch s.peek() {
-		case '0':
-			s.next() // skip '0'
-			return false, nil
-		case '1':
-			s.next() // skip '1'
-			return true, nil
-		default:
-			return nil, s.errUnexpectedCharacter()
-		}
+		return s.decodeBoolean()
+
 	case ch == '@':
 		// a Date
 		return s.decodeDate()
@@ -524,6 +515,24 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 		return s.decodeDisplayString()
 	}
 	return nil, s.errUnexpectedCharacter()
+}
+
+// decodeBoolean parses a Boolean according to RFC 8941 Section 4.2.8.
+func (s *decodeState) decodeBoolean() (Value, error) {
+	if ch := s.peek(); ch != '?' {
+		return nil, s.errUnexpectedCharacter()
+	}
+	s.next() // skip '?'
+	switch s.peek() {
+	case '0':
+		s.next() // skip '0'
+		return false, nil
+	case '1':
+		s.next() // skip '1'
+		return true, nil
+	default:
+		return nil, s.errUnexpectedCharacter()
+	}
 }
 
 // decodeDate parses a Date according to [sfbis-03 4.2.9. Parsing a Date]
