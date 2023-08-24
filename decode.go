@@ -517,42 +517,7 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 		}
 	case ch == '@':
 		// a Date
-		s.next() // skip '@'
-
-		// check sign
-		neg := false
-		if ch := s.peek(); ch == '-' {
-			neg = true
-			s.next() // skip '-'
-		}
-
-		if !isDigit(s.peek()) {
-			return nil, s.errUnexpectedCharacter()
-		}
-
-		num := int64(0)
-		cnt := 0
-		for {
-			ch := s.peek()
-			if !isDigit(ch) {
-				break
-			}
-			s.next()
-			num = num*10 + int64(ch-'0')
-			cnt++
-			if cnt > 15 {
-				return nil, errors.New("sfv: integer overflow")
-			}
-		}
-
-		if s.peek() == '.' {
-			// a Date must not a Decimal.
-			return nil, s.errUnexpectedCharacter()
-		}
-		if neg {
-			num *= -1
-		}
-		return time.Unix(num, 0), nil
+		return s.decodeDate()
 
 	case ch == '%':
 		// a Display String
@@ -561,7 +526,58 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 	return nil, s.errUnexpectedCharacter()
 }
 
+// decodeDate parses a Date according to [sfbis-03 4.2.9. Parsing a Date]
+//
+// [sfbis-03 4.2.9. Parsing a Date]: https://www.ietf.org/archive/id/draft-ietf-httpbis-sfbis-03.html#name-parsing-a-date
+func (s *decodeState) decodeDate() (Value, error) {
+	if ch := s.peek(); ch != '@' {
+		return nil, s.errUnexpectedCharacter()
+	}
+	s.next() // skip '@'
+
+	// check sign
+	neg := false
+	if ch := s.peek(); ch == '-' {
+		neg = true
+		s.next() // skip '-'
+	}
+
+	if !isDigit(s.peek()) {
+		return nil, s.errUnexpectedCharacter()
+	}
+
+	num := int64(0)
+	cnt := 0
+	for {
+		ch := s.peek()
+		if !isDigit(ch) {
+			break
+		}
+		s.next()
+		num = num*10 + int64(ch-'0')
+		cnt++
+		if cnt > 15 {
+			return nil, errors.New("sfv: integer overflow")
+		}
+	}
+
+	if s.peek() == '.' {
+		// a Date must not a Decimal.
+		return nil, s.errUnexpectedCharacter()
+	}
+	if neg {
+		num *= -1
+	}
+	return time.Unix(num, 0), nil
+}
+
+// decodeDate parses a Date according to [sfbis-03 4.2.10. Parsing a Display String]
+//
+// [sfbis-03 4.2.10. Parsing a Display String]: https://www.ietf.org/archive/id/draft-ietf-httpbis-sfbis-03.html#name-parsing-a-display-string
 func (s *decodeState) decodeDisplayString() (Value, error) {
+	if ch := s.peek(); ch != '%' {
+		return nil, s.errUnexpectedCharacter()
+	}
 	s.next() // skip '%'
 
 	// next character must be DQUOTE.
