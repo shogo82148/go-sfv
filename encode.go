@@ -277,6 +277,7 @@ func (s *encodeState) encodeDictionary(dict Dictionary) error {
 	return nil
 }
 
+// EncodeItem encodes the given item to Structured Field Values.
 func EncodeItem(item Item) (string, error) {
 	buf := bufPool.Get().(*bytes.Buffer)
 	defer bufPool.Put(buf)
@@ -289,6 +290,7 @@ func EncodeItem(item Item) (string, error) {
 	return state.buf.String(), nil
 }
 
+// EncodeList encodes the given list to Structured Field Values.
 func EncodeList(list List) (string, error) {
 	buf := bufPool.Get().(*bytes.Buffer)
 	defer bufPool.Put(buf)
@@ -301,6 +303,7 @@ func EncodeList(list List) (string, error) {
 	return state.buf.String(), nil
 }
 
+// EncodeDictionary encodes the given dictionary to Structured Field Values.
 func EncodeDictionary(dict Dictionary) (string, error) {
 	buf := bufPool.Get().(*bytes.Buffer)
 	defer bufPool.Put(buf)

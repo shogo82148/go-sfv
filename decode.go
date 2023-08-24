@@ -862,6 +862,8 @@ func (s *decodeState) decodeDictionary() (Dictionary, error) {
 	return dict, nil
 }
 
+// DecodeList decodes fields as Structured Field Values,
+// and returns the result as an Item.
 func DecodeItem(fields []string) (Item, error) {
 	state := &decodeState{
 		fields: fields,
@@ -878,6 +880,8 @@ func DecodeItem(fields []string) (Item, error) {
 	return ret, nil
 }
 
+// DecodeList decodes fields as Structured Field Values,
+// and returns the result as a List.
 func DecodeList(fields []string) (List, error) {
 	state := &decodeState{
 		fields: fields,
@@ -894,6 +898,8 @@ func DecodeList(fields []string) (List, error) {
 	return ret, nil
 }
 
+// DecodeDictionary decodes fields as Structured Field Values,
+// and returns the result as a Dictionary.
 func DecodeDictionary(fields []string) (Dictionary, error) {
 	state := &decodeState{
 		fields: fields,
