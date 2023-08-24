@@ -24,6 +24,7 @@ type encodeState struct {
 	buf *bytes.Buffer
 }
 
+// encodeItem serializes an item according to RFC 8941 Section 4.1.3.
 func (s *encodeState) encodeItem(item Item) error {
 	if err := s.encodeBareItem(item.Value); err != nil {
 		return err
@@ -34,6 +35,7 @@ func (s *encodeState) encodeItem(item Item) error {
 	return nil
 }
 
+// encodeInteger serializes an integer according to RFC 8941 Section 4.1.4.
 func (s *encodeState) encodeInteger(v int64) error {
 	if v > MaxInteger || v < MinInteger {
 		return fmt.Errorf("sfv: integer %d is out of range", v)
@@ -44,6 +46,7 @@ func (s *encodeState) encodeInteger(v int64) error {
 	return nil
 }
 
+// encodeDecimal serializes an decimal according to RFC 8941 Section 4.1.5.
 func (s *encodeState) encodeDecimal(v float64) error {
 	i := int64(math.RoundToEven(v * 1000))
 	if i > MaxInteger || i < MinInteger {
@@ -79,6 +82,9 @@ func (s *encodeState) encodeDecimal(v float64) error {
 	return nil
 }
 
+// encodeDisplayString serializes a display string according to [sfbis-03 Section 4.1.11].
+//
+// [sfbis-03 Section 4.1.11]: https://www.ietf.org/archive/id/draft-ietf-httpbis-sfbis-03.html#name-serializing-a-display-strin
 func (s *encodeState) encodeDisplayString(v string) error {
 	if !utf8.ValidString(v) {
 		return fmt.Errorf("sfv: display string %q has invalid characters", v)
@@ -97,6 +103,7 @@ func (s *encodeState) encodeDisplayString(v string) error {
 	return nil
 }
 
+// encodeBareItem serializes a bare item according to RFC 8941 Section 4.1.3.1.
 func (s *encodeState) encodeBareItem(v Value) error {
 	switch v := v.(type) {
 	case int8:
@@ -227,6 +234,7 @@ func (s *encodeState) encodeBareItemOrInnerList(value Value) error {
 	return s.encodeBareItem(value)
 }
 
+// encodeInnerList serializes an inner list according to RFC 8941 Section 4.1.1.1.
 func (s *encodeState) encodeInnerList(list InnerList) error {
 	s.buf.WriteByte('(')
 	for i, item := range list {
@@ -241,6 +249,7 @@ func (s *encodeState) encodeInnerList(list InnerList) error {
 	return nil
 }
 
+// encodeList serializes a list according to RFC 8941 Section 4.1.1.
 func (s *encodeState) encodeList(list List) error {
 	for i, item := range list {
 		if err := s.encodeBareItemOrInnerList(item.Value); err != nil {
@@ -256,6 +265,7 @@ func (s *encodeState) encodeList(list List) error {
 	return nil
 }
 
+// encodeDictionary serializes a dictionary according to RFC 8941 Section 4.1.2.
 func (s *encodeState) encodeDictionary(dict Dictionary) error {
 	for i, item := range dict {
 		if err := s.encodeKey(item.Key); err != nil {
