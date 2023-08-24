@@ -1,3 +1,4 @@
+// Package sfv provides a parser and a serializer for Structured Field Values (SFV).
 package sfv
 
 const (
@@ -65,6 +66,7 @@ type DisplayString string
 //	[]byte for Byte Sequences
 //	bool for Booleans
 //	time.Time for Date
+//	DisplayString for Display Strings
 //	InnerList for Inner Lists
 type Value interface{}
 
@@ -73,7 +75,9 @@ type Parameter struct {
 	// Key must match the following regular expression:
 	//
 	//     [a-z*][a-z0-9_.*-]
-	Key   string
+	Key string
+
+	// Value is a bare item.
 	Value Value
 }
 
