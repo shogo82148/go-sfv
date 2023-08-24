@@ -415,34 +415,7 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 
 	case ch == '"':
 		// a String
-		s.next() // skip '"'
-		var buf strings.Builder
-		for {
-			ch := s.peek()
-			switch {
-			case ch == '\\':
-				s.next() // skip '\\'
-				switch s.peek() {
-				case '\\':
-					s.next() // skip '\\'
-					buf.WriteByte('\\')
-				case '"':
-					s.next() // skip '"'
-					buf.WriteByte('"')
-				default:
-					return nil, s.errUnexpectedCharacter()
-				}
-			case ch == '"':
-				// the end of a String
-				s.next() // skip '"'
-				return buf.String(), nil
-			case ch >= 0x20 && ch < 0x7f:
-				s.next()
-				buf.WriteByte(byte(ch))
-			default:
-				return nil, s.errUnexpectedCharacter()
-			}
-		}
+		return s.decodeString()
 
 	case ch == '*' || (lower(ch) >= 'a' && lower(ch) <= 'z'):
 		// a Token
@@ -465,6 +438,41 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 		return s.decodeDisplayString()
 	}
 	return nil, s.errUnexpectedCharacter()
+}
+
+// decodeString parses a String according to RFC 8941 Section 4.2.5.
+func (s *decodeState) decodeString() (Value, error) {
+	if ch := s.peek(); ch != '"' {
+		return nil, s.errUnexpectedCharacter()
+	}
+	s.next() // skip '"'
+	var buf strings.Builder
+	for {
+		ch := s.peek()
+		switch {
+		case ch == '\\':
+			s.next() // skip '\\'
+			switch s.peek() {
+			case '\\':
+				s.next() // skip '\\'
+				buf.WriteByte('\\')
+			case '"':
+				s.next() // skip '"'
+				buf.WriteByte('"')
+			default:
+				return nil, s.errUnexpectedCharacter()
+			}
+		case ch == '"':
+			// the end of a String
+			s.next() // skip '"'
+			return buf.String(), nil
+		case ch >= 0x20 && ch < 0x7f:
+			s.next()
+			buf.WriteByte(byte(ch))
+		default:
+			return nil, s.errUnexpectedCharacter()
+		}
+	}
 }
 
 // decodeToken parses a Token according to RFC 8941 Section 4.2.6.
