@@ -9,7 +9,10 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"unicode/utf8"
 )
+
+var hexBytes = "0123456789abcdef"
 
 var bufPool = sync.Pool{
 	New: func() interface{} {
@@ -73,6 +76,24 @@ func (s *encodeState) encodeDecimal(v float64) error {
 	}
 	s.buf.WriteByte(byte(frac) + '0')
 
+	return nil
+}
+
+func (s *encodeState) encodeDisplayString(v string) error {
+	if !utf8.ValidString(v) {
+		return fmt.Errorf("sfv: display string %q has invalid characters", v)
+	}
+	s.buf.WriteByte('"')
+	for _, ch := range []byte(v) {
+		if ch == '%' || ch == '"' || ch <= 0x1f || ch >= 0x7f {
+			s.buf.WriteByte('%')
+			s.buf.WriteByte(hexBytes[ch>>4])
+			s.buf.WriteByte(hexBytes[ch&0xf])
+		} else {
+			s.buf.WriteByte(ch)
+		}
+	}
+	s.buf.WriteByte('"')
 	return nil
 }
 
@@ -148,9 +169,14 @@ func (s *encodeState) encodeBareItem(v Value) error {
 		} else {
 			s.buf.WriteString("?0")
 		}
+
 	case time.Time:
-		s.buf.WriteString("@")
+		s.buf.WriteByte('@')
 		return s.encodeInteger(v.Unix())
+
+	case DisplayString:
+		s.buf.WriteByte('%')
+		return s.encodeDisplayString(string(v))
 
 	default:
 		return fmt.Errorf("sfv: unsupported type: %T", v)
@@ -188,6 +214,8 @@ func (s *encodeState) encodeKey(key string) error {
 			return fmt.Errorf("sfv: key %q has invalid characters", key)
 		}
 	}
+
+	// encode the key
 	s.buf.WriteString(key)
 	return nil
 }

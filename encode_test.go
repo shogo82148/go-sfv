@@ -194,6 +194,15 @@ func TestEncodeDecimals(t *testing.T) {
 	}
 }
 
+func TestEncodeBadDisplayString(t *testing.T) {
+	_, err := EncodeItem(Item{
+		Value: DisplayString("\x80"),
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+}
+
 func runEncodeTestCases(t *testing.T, filename string) {
 	cases, err := readTestCases(filename)
 	if err != nil {

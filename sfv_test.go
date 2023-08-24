@@ -78,6 +78,10 @@ func TestDate(t *testing.T) {
 	runTestCases(t, "./testdata/structured-field-tests/date.json")
 }
 
+func TestDisplayString(t *testing.T) {
+	runTestCases(t, "./testdata/structured-field-tests/display-string.json")
+}
+
 func TestExtra(t *testing.T) {
 	// This test is not part of the structured-field-tests suite.
 	runTestCases(t, "./testdata/extra.json")

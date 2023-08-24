@@ -63,5 +63,13 @@
         ],
         "header_type": "list",
         "must_fail": true
+    },
+    {
+        "name": "extra: bad display string escaping",
+        "raw": [
+            "%\"%"
+        ],
+        "header_type": "item",
+        "must_fail": true
     }
 ]
