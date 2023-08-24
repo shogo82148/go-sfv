@@ -303,6 +303,7 @@ func (s *decodeState) skipOWS() {
 	}
 }
 
+// errUnexpectedCharacter returns an error for unexpected character.
 func (s *decodeState) errUnexpectedCharacter() error {
 	ch := s.peek()
 	if ch == endOfInput {
@@ -311,6 +312,7 @@ func (s *decodeState) errUnexpectedCharacter() error {
 	return fmt.Errorf("sfv: unexpected character: %q", ch)
 }
 
+// decodeItem parses an Item according to RFC 8941 Section 4.2.3.
 func (s *decodeState) decodeItem() (Item, error) {
 	v, err := s.decodeBareItem()
 	if err != nil {
@@ -328,231 +330,33 @@ func (s *decodeState) decodeItem() (Item, error) {
 	}, nil
 }
 
+// decodeBareItem parses a bare item according to RFC 8941 Section 4.2.3.1.
 func (s *decodeState) decodeBareItem() (Value, error) {
 	ch := s.peek()
 	switch {
 	case ch == '-' || isDigit(ch):
 		// an Integer or Decimal
-		neg := false
-		if ch == '-' {
-			neg = true
-			s.next()
-
-			if !isDigit(s.peek()) {
-				return nil, s.errUnexpectedCharacter()
-			}
-		}
-
-		num := int64(0)
-		cnt := 0
-		for {
-			ch := s.peek()
-			if !isDigit(ch) {
-				break
-			}
-			s.next()
-			num = num*10 + int64(ch-'0')
-			cnt++
-			if cnt > 15 {
-				return nil, errors.New("sfv: integer overflow")
-			}
-		}
-		if s.peek() != '.' {
-			// it is an Integer
-			if neg {
-				num *= -1
-			}
-			return num, nil
-		}
-		// current character is '.'
-		s.next() // skip '.'
-
-		// it might be a Decimal
-		if cnt > 12 {
-			return nil, errors.New("sfv: decimal overflow")
-		}
-
-		frac := 0
-		ch := s.peek()
-		if !isDigit(ch) {
-			// fractional part MUST NOT be empty.
-			return nil, s.errUnexpectedCharacter()
-		}
-		s.next()
-		frac = frac*10 + int(ch-'0')
-
-		ch = s.peek()
-		if !isDigit(ch) {
-			ret := float64(num) + float64(frac)/10
-			if neg {
-				ret *= -1
-			}
-			return ret, nil
-		}
-		s.next()
-		frac = frac*10 + int(ch-'0')
-
-		ch = s.peek()
-		if !isDigit(ch) {
-			ret := float64(num) + float64(frac)/100
-			if neg {
-				ret *= -1
-			}
-			return ret, nil
-		}
-		s.next()
-		frac = frac*10 + int(ch-'0')
-
-		ch = s.peek()
-		if !isDigit(ch) {
-			ret := float64(num) + float64(frac)/1000
-			if neg {
-				ret *= -1
-			}
-			return ret, nil
-		}
-		return nil, errors.New("sfv: decimal has too long fractional part")
+		return s.decodeIntegerOrDecimal()
 
 	case ch == '"':
 		// a String
-		s.next() // skip '"'
-		var buf strings.Builder
-		for {
-			ch := s.peek()
-			switch {
-			case ch == '\\':
-				s.next() // skip '\\'
-				switch s.peek() {
-				case '\\':
-					s.next() // skip '\\'
-					buf.WriteByte('\\')
-				case '"':
-					s.next() // skip '"'
-					buf.WriteByte('"')
-				default:
-					return nil, s.errUnexpectedCharacter()
-				}
-			case ch == '"':
-				// the end of a String
-				s.next() // skip '"'
-				return buf.String(), nil
-			case ch >= 0x20 && ch < 0x7f:
-				s.next()
-				buf.WriteByte(byte(ch))
-			default:
-				return nil, s.errUnexpectedCharacter()
-			}
-		}
+		return s.decodeString()
 
-	case ch == '*' || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'):
+	case ch == '*' || (lower(ch) >= 'a' && lower(ch) <= 'z'):
 		// a Token
-		var buf strings.Builder
-		for {
-			ch := s.peek()
-			switch {
-			case ch == endOfInput:
-				return Token(buf.String()), nil
-			case validTokenChars[ch]:
-				s.next()
-				buf.WriteByte(byte(ch))
-			default:
-				return Token(buf.String()), nil
-			}
-		}
+		return s.decodeToken()
 
 	case ch == ':':
 		// a Byte Sequence
-		s.next() // skip ':'
-		var buf bytes.Buffer
-		for {
-			ch := s.peek()
-			switch {
-			case ch == endOfInput:
-				return nil, s.errUnexpectedCharacter()
-			case ch == ':':
-				// the end of a Binary
-				s.next() // skip ':'
-
-				// add missing "=" padding
-				// RFC 8941 says that parsers SHOULD NOT fail when "=" padding is not present.
-				switch buf.Len() % 4 {
-				case 0:
-				case 1:
-					buf.WriteByte('=')
-					fallthrough
-				case 2:
-					buf.WriteByte('=')
-					fallthrough
-				case 3:
-					buf.WriteByte('=')
-				}
-
-				enc := base64.StdEncoding
-				ret := make([]byte, enc.DecodedLen(buf.Len()))
-				n, err := enc.Decode(ret, buf.Bytes())
-				if err != nil {
-					return nil, err
-				}
-				return ret[:n], nil
-			case validBase64Chars[ch]:
-				s.next()
-				buf.WriteByte(byte(ch))
-			default:
-				return nil, s.errUnexpectedCharacter()
-			}
-		}
+		return s.decodeByteSequence()
 
 	case ch == '?':
 		// a Boolean
-		s.next() // skip '?'
-		switch s.peek() {
-		case '0':
-			s.next() // skip '0'
-			return false, nil
-		case '1':
-			s.next() // skip '1'
-			return true, nil
-		default:
-			return nil, s.errUnexpectedCharacter()
-		}
+		return s.decodeBoolean()
+
 	case ch == '@':
 		// a Date
-		s.next() // skip '@'
-
-		// check sign
-		neg := false
-		if ch := s.peek(); ch == '-' {
-			neg = true
-			s.next() // skip '-'
-		}
-
-		if !isDigit(s.peek()) {
-			return nil, s.errUnexpectedCharacter()
-		}
-
-		num := int64(0)
-		cnt := 0
-		for {
-			ch := s.peek()
-			if !isDigit(ch) {
-				break
-			}
-			s.next()
-			num = num*10 + int64(ch-'0')
-			cnt++
-			if cnt > 15 {
-				return nil, errors.New("sfv: integer overflow")
-			}
-		}
-
-		if s.peek() == '.' {
-			// a Date must not a Decimal.
-			return nil, s.errUnexpectedCharacter()
-		}
-		if neg {
-			num *= -1
-		}
-		return time.Unix(num, 0), nil
+		return s.decodeDate()
 
 	case ch == '%':
 		// a Display String
@@ -561,7 +365,258 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 	return nil, s.errUnexpectedCharacter()
 }
 
+// decodeIntegerOrDecimal parses an Integer or Decimal according to RFC 8941 Section 4.2.4.
+func (s *decodeState) decodeIntegerOrDecimal() (Value, error) {
+	ch := s.peek()
+	neg := false
+	if ch == '-' {
+		neg = true
+		s.next()
+
+		if !isDigit(s.peek()) {
+			return nil, s.errUnexpectedCharacter()
+		}
+	}
+
+	num := int64(0)
+	cnt := 0
+	for {
+		ch := s.peek()
+		if !isDigit(ch) {
+			break
+		}
+		s.next()
+		num = num*10 + int64(ch-'0')
+		cnt++
+		if cnt > 15 {
+			return nil, errors.New("sfv: integer overflow")
+		}
+	}
+	if s.peek() != '.' {
+		// it is an Integer
+		if neg {
+			num *= -1
+		}
+		return num, nil
+	}
+	// current character is '.'
+	s.next() // skip '.'
+
+	// it might be a Decimal
+	if cnt > 12 {
+		return nil, errors.New("sfv: decimal overflow")
+	}
+
+	frac := 0
+	ch = s.peek()
+	if !isDigit(ch) {
+		// fractional part MUST NOT be empty.
+		return nil, s.errUnexpectedCharacter()
+	}
+	s.next()
+	frac = frac*10 + int(ch-'0')
+
+	ch = s.peek()
+	if !isDigit(ch) {
+		ret := float64(num) + float64(frac)/10
+		if neg {
+			ret *= -1
+		}
+		return ret, nil
+	}
+	s.next()
+	frac = frac*10 + int(ch-'0')
+
+	ch = s.peek()
+	if !isDigit(ch) {
+		ret := float64(num) + float64(frac)/100
+		if neg {
+			ret *= -1
+		}
+		return ret, nil
+	}
+	s.next()
+	frac = frac*10 + int(ch-'0')
+
+	ch = s.peek()
+	if !isDigit(ch) {
+		ret := float64(num) + float64(frac)/1000
+		if neg {
+			ret *= -1
+		}
+		return ret, nil
+	}
+	return nil, errors.New("sfv: decimal has too long fractional part")
+}
+
+// decodeString parses a String according to RFC 8941 Section 4.2.5.
+func (s *decodeState) decodeString() (Value, error) {
+	if ch := s.peek(); ch != '"' {
+		return nil, s.errUnexpectedCharacter()
+	}
+	s.next() // skip '"'
+	var buf strings.Builder
+	for {
+		ch := s.peek()
+		switch {
+		case ch == '\\':
+			s.next() // skip '\\'
+			switch s.peek() {
+			case '\\':
+				s.next() // skip '\\'
+				buf.WriteByte('\\')
+			case '"':
+				s.next() // skip '"'
+				buf.WriteByte('"')
+			default:
+				return nil, s.errUnexpectedCharacter()
+			}
+		case ch == '"':
+			// the end of a String
+			s.next() // skip '"'
+			return buf.String(), nil
+		case ch >= 0x20 && ch < 0x7f:
+			s.next()
+			buf.WriteByte(byte(ch))
+		default:
+			return nil, s.errUnexpectedCharacter()
+		}
+	}
+}
+
+// decodeToken parses a Token according to RFC 8941 Section 4.2.6.
+func (s *decodeState) decodeToken() (Value, error) {
+	var buf strings.Builder
+	for {
+		ch := s.peek()
+		switch {
+		case ch == endOfInput:
+			return Token(buf.String()), nil
+		case validTokenChars[ch]:
+			s.next()
+			buf.WriteByte(byte(ch))
+		default:
+			return Token(buf.String()), nil
+		}
+	}
+}
+
+// decodeBytesSequence parses a Byte Sequence according to RFC 8941 Section 4.2.7.
+func (s *decodeState) decodeByteSequence() (Value, error) {
+	if ch := s.peek(); ch != ':' {
+		return nil, s.errUnexpectedCharacter()
+	}
+	s.next() // skip ':'
+	var buf bytes.Buffer
+	for {
+		ch := s.peek()
+		switch {
+		case ch == endOfInput:
+			return nil, s.errUnexpectedCharacter()
+		case ch == ':':
+			// the end of a Binary
+			s.next() // skip ':'
+
+			// add missing "=" padding
+			// RFC 8941 says that parsers SHOULD NOT fail when "=" padding is not present.
+			switch buf.Len() % 4 {
+			case 0:
+			case 1:
+				buf.WriteByte('=')
+				fallthrough
+			case 2:
+				buf.WriteByte('=')
+				fallthrough
+			case 3:
+				buf.WriteByte('=')
+			}
+
+			enc := base64.StdEncoding
+			ret := make([]byte, enc.DecodedLen(buf.Len()))
+			n, err := enc.Decode(ret, buf.Bytes())
+			if err != nil {
+				return nil, err
+			}
+			return ret[:n], nil
+		case validBase64Chars[ch]:
+			s.next()
+			buf.WriteByte(byte(ch))
+		default:
+			return nil, s.errUnexpectedCharacter()
+		}
+	}
+}
+
+// decodeBoolean parses a Boolean according to RFC 8941 Section 4.2.8.
+func (s *decodeState) decodeBoolean() (Value, error) {
+	if ch := s.peek(); ch != '?' {
+		return nil, s.errUnexpectedCharacter()
+	}
+	s.next() // skip '?'
+	switch s.peek() {
+	case '0':
+		s.next() // skip '0'
+		return false, nil
+	case '1':
+		s.next() // skip '1'
+		return true, nil
+	default:
+		return nil, s.errUnexpectedCharacter()
+	}
+}
+
+// decodeDate parses a Date according to [sfbis-03 4.2.9. Parsing a Date]
+//
+// [sfbis-03 4.2.9. Parsing a Date]: https://www.ietf.org/archive/id/draft-ietf-httpbis-sfbis-03.html#name-parsing-a-date
+func (s *decodeState) decodeDate() (Value, error) {
+	if ch := s.peek(); ch != '@' {
+		return nil, s.errUnexpectedCharacter()
+	}
+	s.next() // skip '@'
+
+	// check sign
+	neg := false
+	if ch := s.peek(); ch == '-' {
+		neg = true
+		s.next() // skip '-'
+	}
+
+	if !isDigit(s.peek()) {
+		return nil, s.errUnexpectedCharacter()
+	}
+
+	num := int64(0)
+	cnt := 0
+	for {
+		ch := s.peek()
+		if !isDigit(ch) {
+			break
+		}
+		s.next()
+		num = num*10 + int64(ch-'0')
+		cnt++
+		if cnt > 15 {
+			return nil, errors.New("sfv: integer overflow")
+		}
+	}
+
+	if s.peek() == '.' {
+		// a Date must not a Decimal.
+		return nil, s.errUnexpectedCharacter()
+	}
+	if neg {
+		num *= -1
+	}
+	return time.Unix(num, 0), nil
+}
+
+// decodeDate parses a Date according to [sfbis-03 4.2.10. Parsing a Display String]
+//
+// [sfbis-03 4.2.10. Parsing a Display String]: https://www.ietf.org/archive/id/draft-ietf-httpbis-sfbis-03.html#name-parsing-a-display-string
 func (s *decodeState) decodeDisplayString() (Value, error) {
+	if ch := s.peek(); ch != '%' {
+		return nil, s.errUnexpectedCharacter()
+	}
 	s.next() // skip '%'
 
 	// next character must be DQUOTE.
