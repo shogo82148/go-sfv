@@ -444,21 +444,9 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 			}
 		}
 
-	case ch == '*' || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'):
+	case ch == '*' || (lower(ch) >= 'a' && lower(ch) <= 'z'):
 		// a Token
-		var buf strings.Builder
-		for {
-			ch := s.peek()
-			switch {
-			case ch == endOfInput:
-				return Token(buf.String()), nil
-			case validTokenChars[ch]:
-				s.next()
-				buf.WriteByte(byte(ch))
-			default:
-				return Token(buf.String()), nil
-			}
-		}
+		return s.decodeToken()
 
 	case ch == ':':
 		// a Byte Sequence
@@ -477,6 +465,23 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 		return s.decodeDisplayString()
 	}
 	return nil, s.errUnexpectedCharacter()
+}
+
+// decodeToken parses a Token according to RFC 8941 Section 4.2.6.
+func (s *decodeState) decodeToken() (Value, error) {
+	var buf strings.Builder
+	for {
+		ch := s.peek()
+		switch {
+		case ch == endOfInput:
+			return Token(buf.String()), nil
+		case validTokenChars[ch]:
+			s.next()
+			buf.WriteByte(byte(ch))
+		default:
+			return Token(buf.String()), nil
+		}
+	}
 }
 
 // decodeBytesSequence parses a Byte Sequence according to RFC 8941 Section 4.2.7.
