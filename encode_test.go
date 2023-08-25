@@ -526,41 +526,6 @@ func TestEncode_invalidTypes(t *testing.T) {
 	}
 }
 
-func BenchmarkEncodeItem(b *testing.B) {
-	item := Item{
-		Value: []byte("こんにちわ〜o(^^)o"),
-		Parameters: []Parameter{
-			{
-				Key: "integer", Value: int64(1),
-			},
-			{
-				Key: "decimal", Value: 1.234,
-			},
-			{
-				Key: "binary", Value: []byte("こんにちわ〜o(^^)o"),
-			},
-			{
-				Key: "token", Value: Token("hello"),
-			},
-			{
-				Key: "string", Value: "hello world!",
-			},
-			{
-				Key: "boolean", Value: false,
-			},
-		},
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		if got, err := EncodeItem(item); err != nil {
-			b.Error(err)
-		} else {
-			runtime.KeepAlive(got)
-		}
-	}
-}
-
 func BenchmarkEncodeInteger(b *testing.B) {
 	item := Item{
 		Value: int64(-MaxInteger),
@@ -665,6 +630,47 @@ func BenchmarkEncodeDisplayString(b *testing.B) {
 	}
 }
 
+func BenchmarkEncodeItem(b *testing.B) {
+	item := Item{
+		Value: []byte("こんにちわ〜o(^^)o"),
+		Parameters: []Parameter{
+			{
+				Key: "integer", Value: int64(1),
+			},
+			{
+				Key: "decimal", Value: 1.234,
+			},
+			{
+				Key: "binary", Value: []byte("こんにちわ〜o(^^)o"),
+			},
+			{
+				Key: "token", Value: Token("hello"),
+			},
+			{
+				Key: "string", Value: "hello world!",
+			},
+			{
+				Key: "boolean", Value: false,
+			},
+			{
+				Key: "date", Value: time.Unix(1659578233, 0),
+			},
+			{
+				Key: "display-string", Value: DisplayString("こんにちわ〜o(^^)o"),
+			},
+		},
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if got, err := EncodeItem(item); err != nil {
+			b.Error(err)
+		} else {
+			runtime.KeepAlive(got)
+		}
+	}
+}
+
 func BenchmarkEncodeList(b *testing.B) {
 	item := Item{
 		Value: []byte("こんにちわ〜o(^^)o"),
@@ -686,6 +692,12 @@ func BenchmarkEncodeList(b *testing.B) {
 			},
 			{
 				Key: "boolean", Value: false,
+			},
+			{
+				Key: "date", Value: time.Unix(1659578233, 0),
+			},
+			{
+				Key: "display-string", Value: DisplayString("こんにちわ〜o(^^)o"),
 			},
 		},
 	}
@@ -725,6 +737,12 @@ func BenchmarkEncodeDictionary(b *testing.B) {
 			},
 			{
 				Key: "boolean", Value: false,
+			},
+			{
+				Key: "date", Value: time.Unix(1659578233, 0),
+			},
+			{
+				Key: "display-string", Value: DisplayString("こんにちわ〜o(^^)o"),
 			},
 		},
 	}

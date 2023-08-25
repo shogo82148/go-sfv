@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	"testing"
+	"time"
 )
 
 func BenchmarkDecodeInteger(b *testing.B) {
@@ -116,6 +117,12 @@ func BenchmarkDecodeItem(b *testing.B) {
 			{
 				Key: "boolean", Value: false,
 			},
+			{
+				Key: "date", Value: time.Unix(1659578233, 0),
+			},
+			{
+				Key: "display-string", Value: DisplayString("こんにちわ〜o(^^)o"),
+			},
 		},
 	}
 	v, err := EncodeItem(item)
@@ -155,6 +162,12 @@ func BenchmarkDecodeList(b *testing.B) {
 			},
 			{
 				Key: "boolean", Value: false,
+			},
+			{
+				Key: "date", Value: time.Unix(1659578233, 0),
+			},
+			{
+				Key: "display-string", Value: DisplayString("こんにちわ〜o(^^)o"),
 			},
 		},
 	}
@@ -199,6 +212,12 @@ func BenchmarkDecodeDictionary(b *testing.B) {
 			},
 			{
 				Key: "boolean", Value: false,
+			},
+			{
+				Key: "date", Value: time.Unix(1659578233, 0),
+			},
+			{
+				Key: "display-string", Value: DisplayString("こんにちわ〜o(^^)o"),
 			},
 		},
 	}
