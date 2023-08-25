@@ -151,9 +151,11 @@ func (s *encodeState) encodeBareItem(v Value) error {
 		return s.encodeDecimal(float64(v))
 
 	case string:
-		if !IsValidString(v) {
+		valid, bytes := validateStringAndCountBytes(v)
+		if !valid {
 			return fmt.Errorf("sfv: string %q has invalid characters", v)
 		}
+		s.buf.Grow(bytes + 2)
 		s.buf.WriteByte('"')
 		for _, ch := range []byte(v) {
 			switch ch {

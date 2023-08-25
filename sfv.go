@@ -52,6 +52,21 @@ func IsValidString(s string) bool {
 	return true
 }
 
+// validateStringAndCountBytes returns whether the s has valid form and the number of bytes.
+func validateStringAndCountBytes(s string) (valid bool, bytes int) {
+	for _, ch := range []byte(s) {
+		bytes++
+		if ch < 0x20 || ch >= 0x7f {
+			return false, 0
+		}
+		if ch == '\\' || ch == '"' {
+			bytes++
+		}
+	}
+	valid = true
+	return
+}
+
 // DisplayString is a unicode string.
 type DisplayString string
 
