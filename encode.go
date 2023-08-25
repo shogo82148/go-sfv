@@ -14,6 +14,11 @@ import (
 
 var hexBytes = "0123456789abcdef"
 
+// bytes.Buffer provides AvailableBuffer from Go 1.21.0.
+type availableBuffer interface {
+	AvailableBuffer() []byte
+}
+
 var bufPool = sync.Pool{
 	New: func() interface{} {
 		return new(encodeState)
@@ -89,6 +94,29 @@ func (s *encodeState) encodeDecimal(v float64) error {
 	}
 	s.buf.WriteByte(byte(frac) + '0')
 
+	return nil
+}
+
+// encodeBinary serializes a byte sequence according to RFC 8941 Section 4.1.8.
+func (s *encodeState) encodeByteSequence(v []byte) error {
+	// allocate a buffer
+	l := base64.StdEncoding.EncodedLen(len(v)) + 2
+	var b []byte
+	if ab, ok := any(&s.buf).(availableBuffer); ok {
+		s.buf.Grow(l)
+		b = ab.AvailableBuffer()
+	}
+	if cap(b) < l {
+		b = make([]byte, l)
+	} else {
+		b = b[:l]
+	}
+
+	// encode the byte sequence as base64.
+	b[0] = ':'
+	b[l-1] = ':'
+	base64.StdEncoding.Encode(b[1:], v)
+	s.buf.Write(b[:l])
 	return nil
 }
 
@@ -174,11 +202,7 @@ func (s *encodeState) encodeBareItem(v Value) error {
 		s.buf.WriteString(string(v))
 
 	case []byte:
-		s.buf.WriteByte(':')
-		w := base64.NewEncoder(base64.StdEncoding, &s.buf)
-		w.Write(v)
-		w.Close()
-		s.buf.WriteByte(':')
+		return s.encodeByteSequence(v)
 
 	case bool:
 		if v {
