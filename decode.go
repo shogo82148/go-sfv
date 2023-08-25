@@ -237,7 +237,7 @@ func lower(c int) int {
 
 // isHexDigit reports whether ch is a hexadecimal digit.
 func isHexDigit(ch int) bool {
-	return isDigit(ch) || (lower(ch) >= 'a' && lower(ch) <= 'f')
+	return isDigit(ch) || (ch >= 'a' && ch <= 'f')
 }
 
 // hex returns the value of the hexadecimal digit.
@@ -246,7 +246,7 @@ func hex(ch int) byte {
 	if ch >= '0' && ch <= '9' {
 		return byte(ch - '0')
 	}
-	return byte(lower(ch) - 'a' + 10)
+	return byte(ch - 'a' + 10)
 }
 
 type decodeState struct {
