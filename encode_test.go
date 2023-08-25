@@ -626,6 +626,19 @@ func BenchmarkEncodeBinary(b *testing.B) {
 	}
 }
 
+func BenchmarkEncodeBoolean(b *testing.B) {
+	item := Item{
+		Value: true,
+	}
+	for i := 0; i < b.N; i++ {
+		got, err := EncodeItem(item)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
 func BenchmarkEncodeDate(b *testing.B) {
 	item := Item{
 		Value: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
