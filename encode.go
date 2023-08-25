@@ -19,20 +19,20 @@ type availableBuffer interface {
 	AvailableBuffer() []byte
 }
 
-var bufPool = sync.Pool{
+var encStatePool = sync.Pool{
 	New: func() interface{} {
 		return new(encodeState)
 	},
 }
 
 func getEncodeState() *encodeState {
-	s := bufPool.Get().(*encodeState)
+	s := encStatePool.Get().(*encodeState)
 	s.buf.Reset()
 	return s
 }
 
 func putEncodeState(s *encodeState) {
-	bufPool.Put(s)
+	encStatePool.Put(s)
 }
 
 type encodeState struct {

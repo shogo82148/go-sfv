@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 )
@@ -247,6 +248,25 @@ func hex(ch int) byte {
 		return byte(ch - '0')
 	}
 	return byte(ch - 'a' + 10)
+}
+
+var decStatePool = sync.Pool{
+	New: func() any {
+		return new(decodeState)
+	},
+}
+
+func getDecodeState(fields []string) *decodeState {
+	s := decStatePool.Get().(*decodeState)
+	s.fields = fields
+	s.line = 0
+	s.col = 0
+	s.endOfField = false
+	return s
+}
+
+func putDecodeState(s *decodeState) {
+	decStatePool.Put(s)
 }
 
 type decodeState struct {
@@ -866,9 +886,9 @@ func (s *decodeState) decodeDictionary() (Dictionary, error) {
 // DecodeList decodes fields as Structured Field Values,
 // and returns the result as an Item.
 func DecodeItem(fields []string) (Item, error) {
-	state := &decodeState{
-		fields: fields,
-	}
+	state := getDecodeState(fields)
+	defer putDecodeState(state)
+
 	state.skipSPs()
 	ret, err := state.decodeItem()
 	if err != nil {
@@ -884,9 +904,9 @@ func DecodeItem(fields []string) (Item, error) {
 // DecodeList decodes fields as Structured Field Values,
 // and returns the result as a List.
 func DecodeList(fields []string) (List, error) {
-	state := &decodeState{
-		fields: fields,
-	}
+	state := getDecodeState(fields)
+	defer putDecodeState(state)
+
 	state.skipSPs()
 	ret, err := state.decodeList()
 	if err != nil {
@@ -902,9 +922,9 @@ func DecodeList(fields []string) (List, error) {
 // DecodeDictionary decodes fields as Structured Field Values,
 // and returns the result as a Dictionary.
 func DecodeDictionary(fields []string) (Dictionary, error) {
-	state := &decodeState{
-		fields: fields,
-	}
+	state := getDecodeState(fields)
+	defer putDecodeState(state)
+
 	state.skipSPs()
 	ret, err := state.decodeDictionary()
 	if err != nil {
