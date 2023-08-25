@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestEncodeKeyGenerated(t *testing.T) {
@@ -525,6 +526,110 @@ func TestEncode_invalidTypes(t *testing.T) {
 	}
 }
 
+func BenchmarkEncodeInteger(b *testing.B) {
+	item := Item{
+		Value: int64(-MaxInteger),
+	}
+	for i := 0; i < b.N; i++ {
+		got, err := EncodeItem(item)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkEncodeDecimal(b *testing.B) {
+	item := Item{
+		Value: float64(-MaxDecimal),
+	}
+	for i := 0; i < b.N; i++ {
+		got, err := EncodeItem(item)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkEncodeString(b *testing.B) {
+	item := Item{
+		Value: "hello world!",
+	}
+	for i := 0; i < b.N; i++ {
+		got, err := EncodeItem(item)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkEncodeToken(b *testing.B) {
+	item := Item{
+		Value: Token("hello"),
+	}
+	for i := 0; i < b.N; i++ {
+		got, err := EncodeItem(item)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkEncodeBinary(b *testing.B) {
+	item := Item{
+		Value: []byte("こんにちわ〜o(^^)o"),
+	}
+	for i := 0; i < b.N; i++ {
+		got, err := EncodeItem(item)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkEncodeBoolean(b *testing.B) {
+	item := Item{
+		Value: true,
+	}
+	for i := 0; i < b.N; i++ {
+		got, err := EncodeItem(item)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkEncodeDate(b *testing.B) {
+	item := Item{
+		Value: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
+	}
+	for i := 0; i < b.N; i++ {
+		got, err := EncodeItem(item)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkEncodeDisplayString(b *testing.B) {
+	item := Item{
+		Value: DisplayString("こんにちわ〜o(^^)o"),
+	}
+	for i := 0; i < b.N; i++ {
+		got, err := EncodeItem(item)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
 func BenchmarkEncodeItem(b *testing.B) {
 	item := Item{
 		Value: []byte("こんにちわ〜o(^^)o"),
@@ -546,6 +651,12 @@ func BenchmarkEncodeItem(b *testing.B) {
 			},
 			{
 				Key: "boolean", Value: false,
+			},
+			{
+				Key: "date", Value: time.Unix(1659578233, 0),
+			},
+			{
+				Key: "display-string", Value: DisplayString("こんにちわ〜o(^^)o"),
 			},
 		},
 	}
@@ -581,6 +692,12 @@ func BenchmarkEncodeList(b *testing.B) {
 			},
 			{
 				Key: "boolean", Value: false,
+			},
+			{
+				Key: "date", Value: time.Unix(1659578233, 0),
+			},
+			{
+				Key: "display-string", Value: DisplayString("こんにちわ〜o(^^)o"),
 			},
 		},
 	}
@@ -620,6 +737,12 @@ func BenchmarkEncodeDictionary(b *testing.B) {
 			},
 			{
 				Key: "boolean", Value: false,
+			},
+			{
+				Key: "date", Value: time.Unix(1659578233, 0),
+			},
+			{
+				Key: "display-string", Value: DisplayString("こんにちわ〜o(^^)o"),
 			},
 		},
 	}

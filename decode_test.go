@@ -4,7 +4,96 @@ import (
 	"fmt"
 	"runtime"
 	"testing"
+	"time"
 )
+
+func BenchmarkDecodeInteger(b *testing.B) {
+	v := []string{"-123456789012345"}
+	for i := 0; i < b.N; i++ {
+		got, err := DecodeItem(v)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkDecodeDecimal(b *testing.B) {
+	v := []string{"-123456789012.345"}
+	for i := 0; i < b.N; i++ {
+		got, err := DecodeItem(v)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkDecodeString(b *testing.B) {
+	v := []string{`"hello"`}
+	for i := 0; i < b.N; i++ {
+		got, err := DecodeItem(v)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkDecodeToken(b *testing.B) {
+	v := []string{"hello"}
+	for i := 0; i < b.N; i++ {
+		got, err := DecodeItem(v)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkDecodeBinary(b *testing.B) {
+	v := []string{":AQID:"}
+	for i := 0; i < b.N; i++ {
+		got, err := DecodeItem(v)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkDecodeBoolean(b *testing.B) {
+	v := []string{"?1"}
+	for i := 0; i < b.N; i++ {
+		got, err := DecodeItem(v)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkDecodeDate(b *testing.B) {
+	v := []string{"@1659578233"}
+	for i := 0; i < b.N; i++ {
+		got, err := DecodeItem(v)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
+
+func BenchmarkDecodeDisplayString(b *testing.B) {
+	v := []string{`%"%e3%81%93%e3%82%93%e3%81%ab%e3%81%a1%e3%82%8f%e3%80%9co(^^)o"`}
+	for i := 0; i < b.N; i++ {
+		got, err := DecodeItem(v)
+		if err != nil {
+			b.Error(err)
+		}
+		runtime.KeepAlive(got)
+	}
+}
 
 func BenchmarkDecodeItem(b *testing.B) {
 	item := Item{
@@ -28,20 +117,27 @@ func BenchmarkDecodeItem(b *testing.B) {
 			{
 				Key: "boolean", Value: false,
 			},
+			{
+				Key: "date", Value: time.Unix(1659578233, 0),
+			},
+			{
+				Key: "display-string", Value: DisplayString("こんにちわ〜o(^^)o"),
+			},
 		},
 	}
 	v, err := EncodeItem(item)
 	if err != nil {
 		b.Error(err)
 	}
+	vv := []string{v}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if got, err := DecodeItem([]string{v}); err != nil {
+		got, err := DecodeItem(vv)
+		if err != nil {
 			b.Error(err)
-		} else {
-			runtime.KeepAlive(got)
 		}
+		runtime.KeepAlive(got)
 	}
 }
 
@@ -67,21 +163,27 @@ func BenchmarkDecodeList(b *testing.B) {
 			{
 				Key: "boolean", Value: false,
 			},
+			{
+				Key: "date", Value: time.Unix(1659578233, 0),
+			},
+			{
+				Key: "display-string", Value: DisplayString("こんにちわ〜o(^^)o"),
+			},
 		},
 	}
-	var list List
-	for i := 0; i < 1024; i++ {
-		list = append(list, item)
-	}
-
-	v, err := EncodeList(list)
+	v, err := EncodeItem(item)
 	if err != nil {
 		b.Error(err)
 	}
 
+	var list []string
+	for i := 0; i < 1024; i++ {
+		list = append(list, v)
+	}
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if got, err := DecodeList([]string{v}); err != nil {
+		if got, err := DecodeList(list); err != nil {
 			b.Error(err)
 		} else {
 			runtime.KeepAlive(got)
@@ -111,24 +213,31 @@ func BenchmarkDecodeDictionary(b *testing.B) {
 			{
 				Key: "boolean", Value: false,
 			},
+			{
+				Key: "date", Value: time.Unix(1659578233, 0),
+			},
+			{
+				Key: "display-string", Value: DisplayString("こんにちわ〜o(^^)o"),
+			},
 		},
 	}
-	var dict Dictionary
+	var dict []string
 	for i := 0; i < 1024; i++ {
-		dict = append(dict, DictMember{
-			Key:  fmt.Sprintf("key%d", i),
-			Item: item,
+		member, err := EncodeDictionary([]DictMember{
+			{
+				Key:  fmt.Sprintf("key%d", i),
+				Item: item,
+			},
 		})
-	}
-
-	v, err := EncodeDictionary(dict)
-	if err != nil {
-		b.Error(err)
+		if err != nil {
+			b.Error(err)
+		}
+		dict = append(dict, member)
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if got, err := DecodeDictionary([]string{v}); err != nil {
+		if got, err := DecodeDictionary(dict); err != nil {
 			b.Error(err)
 		} else {
 			runtime.KeepAlive(got)
