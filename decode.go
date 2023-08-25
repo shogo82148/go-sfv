@@ -273,6 +273,7 @@ type decodeState struct {
 	fields     []string
 	line, col  int
 	endOfField bool
+	buf        bytes.Buffer
 }
 
 func (s *decodeState) peek() int {
@@ -527,7 +528,7 @@ func (s *decodeState) decodeByteSequence() (Value, error) {
 		return nil, s.errUnexpectedCharacter()
 	}
 	s.next() // skip ':'
-	var buf bytes.Buffer
+	s.buf.Reset()
 	for {
 		ch := s.peek()
 		switch {
@@ -539,28 +540,28 @@ func (s *decodeState) decodeByteSequence() (Value, error) {
 
 			// add missing "=" padding
 			// RFC 8941 says that parsers SHOULD NOT fail when "=" padding is not present.
-			switch buf.Len() % 4 {
+			switch s.buf.Len() % 4 {
 			case 0:
 			case 1:
-				buf.WriteByte('=')
+				s.buf.WriteByte('=')
 				fallthrough
 			case 2:
-				buf.WriteByte('=')
+				s.buf.WriteByte('=')
 				fallthrough
 			case 3:
-				buf.WriteByte('=')
+				s.buf.WriteByte('=')
 			}
 
 			enc := base64.StdEncoding
-			ret := make([]byte, enc.DecodedLen(buf.Len()))
-			n, err := enc.Decode(ret, buf.Bytes())
+			ret := make([]byte, enc.DecodedLen(s.buf.Len()))
+			n, err := enc.Decode(ret, s.buf.Bytes())
 			if err != nil {
 				return nil, err
 			}
 			return ret[:n], nil
 		case validBase64Chars[ch]:
 			s.next()
-			buf.WriteByte(byte(ch))
+			s.buf.WriteByte(byte(ch))
 		default:
 			return nil, s.errUnexpectedCharacter()
 		}
