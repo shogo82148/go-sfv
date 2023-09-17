@@ -16,6 +16,9 @@ jobs:
           - "1.19"
           - "1.18"
           - "1.17"
+        arch:
+          - amd64 # int has 64bit
+          - "386" # int has 32bit
         goexperiment: [""]
         include:
           # test with GOEXPERIMENT=loopvar
@@ -40,6 +43,7 @@ jobs:
         run: go test -v -coverprofile=profile.cov ./...
         env:
           GOEXPERIMENT: ${{ matrix.goexperiment }}
+          GOARCH: ${{ matrix.arch }}
 
       - uses: shogo82148/actions-goveralls@v1
         with:

@@ -138,8 +138,9 @@ func TestEncodeIntegers_boundary(t *testing.T) {
 	}
 
 	if math.MaxInt >= MaxInteger {
+		v := uint64(math.MaxInt64 + 1)
 		_, err = EncodeItem(Item{
-			Value: uint(math.MaxInt64 + 1),
+			Value: uint(v),
 		})
 		if err == nil {
 			t.Error("want error, not not")
