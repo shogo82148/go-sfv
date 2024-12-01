@@ -3,8 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/shogo82148/go-sfv.svg)](https://pkg.go.dev/github.com/shogo82148/go-sfv)
 [![Test](https://github.com/shogo82148/go-sfv/actions/workflows/test.yml/badge.svg)](https://github.com/shogo82148/go-sfv/actions/workflows/test.yml)
 
-Go implementation for [RFC 8941 Structured Field Values for HTTP](https://www.rfc-editor.org/rfc/rfc8941.html) (SFV).
-It also supports Dates and Display Strings defined by [draft-ietf-httpbis-sfbis-03](https://datatracker.ietf.org/doc/draft-ietf-httpbis-sfbis/03/).
+Go implementation for [RFC 9651 Structured Field Values for HTTP](https://www.rfc-editor.org/rfc/rfc8941.html) (SFV).
 
 ## Synopsis
 
@@ -54,7 +53,7 @@ Note that only **Lists**(`sfv.List`), **Dictionaries**(`sfv.Dictionary`), and **
 The `sfv.Value` is defined as the following:
 
 ```go
-type Value interface{}
+type Value any
 ```
 
 The actual type might be one of them:
@@ -128,7 +127,6 @@ type Dictionary []DictMember
 
 ## References
 
-- [RFC 8941 Structured Field Values for HTTP](https://www.rfc-editor.org/rfc/rfc8941.html)
-- [draft-ietf-httpbis-sfbis-03](https://datatracker.ietf.org/doc/draft-ietf-httpbis-sfbis/03/)
+- [RFC 9651 Structured Field Values for HTTP](https://www.rfc-editor.org/rfc/rfc9651.html)
 - [Structured Field Values による Header Field の構造化](https://blog.jxck.io/entries/2021-01-31/structured-field-values.html)
 - [IETF RFC における ABNF と Parsing Algorithm の関係](https://blog.jxck.io/entries/2023-05-17/abnf-or-algorithm-in-rfc.html)

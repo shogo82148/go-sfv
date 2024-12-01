@@ -313,7 +313,7 @@ func (s *decodeState) errUnexpectedCharacter() error {
 	return fmt.Errorf("sfv: unexpected character: %q", ch)
 }
 
-// decodeItem parses an Item according to RFC 8941 Section 4.2.3.
+// decodeItem parses an Item according to RFC 9651 Section 4.2.3.
 func (s *decodeState) decodeItem() (Item, error) {
 	v, err := s.decodeBareItem()
 	if err != nil {
@@ -331,7 +331,7 @@ func (s *decodeState) decodeItem() (Item, error) {
 	}, nil
 }
 
-// decodeBareItem parses a bare item according to RFC 8941 Section 4.2.3.1.
+// decodeBareItem parses a bare item according to RFC 9651 Section 4.2.3.1.
 func (s *decodeState) decodeBareItem() (Value, error) {
 	ch := s.peek()
 	switch {
@@ -366,7 +366,7 @@ func (s *decodeState) decodeBareItem() (Value, error) {
 	return nil, s.errUnexpectedCharacter()
 }
 
-// decodeIntegerOrDecimal parses an Integer or Decimal according to RFC 8941 Section 4.2.4.
+// decodeIntegerOrDecimal parses an Integer or Decimal according to RFC 9651 Section 4.2.4.
 func (s *decodeState) decodeIntegerOrDecimal() (Value, error) {
 	ch := s.peek()
 	neg := false
@@ -450,7 +450,7 @@ func (s *decodeState) decodeIntegerOrDecimal() (Value, error) {
 	return nil, errors.New("sfv: decimal has too long fractional part")
 }
 
-// decodeString parses a String according to RFC 8941 Section 4.2.5.
+// decodeString parses a String according to RFC 9651 Section 4.2.5.
 func (s *decodeState) decodeString() (Value, error) {
 	if ch := s.peek(); ch != '"' {
 		return nil, s.errUnexpectedCharacter()
@@ -485,7 +485,7 @@ func (s *decodeState) decodeString() (Value, error) {
 	}
 }
 
-// decodeToken parses a Token according to RFC 8941 Section 4.2.6.
+// decodeToken parses a Token according to RFC 9651 Section 4.2.6.
 func (s *decodeState) decodeToken() (Value, error) {
 	var buf strings.Builder
 	for {
@@ -502,7 +502,7 @@ func (s *decodeState) decodeToken() (Value, error) {
 	}
 }
 
-// decodeBytesSequence parses a Byte Sequence according to RFC 8941 Section 4.2.7.
+// decodeBytesSequence parses a Byte Sequence according to RFC 9651 Section 4.2.7.
 func (s *decodeState) decodeByteSequence() (Value, error) {
 	if ch := s.peek(); ch != ':' {
 		return nil, s.errUnexpectedCharacter()
@@ -519,7 +519,7 @@ func (s *decodeState) decodeByteSequence() (Value, error) {
 			s.next() // skip ':'
 
 			// add missing "=" padding
-			// RFC 8941 says that parsers SHOULD NOT fail when "=" padding is not present.
+			// RFC 9651 says that parsers SHOULD NOT fail when "=" padding is not present.
 			switch s.buf.Len() % 4 {
 			case 0:
 			case 1:
@@ -548,7 +548,7 @@ func (s *decodeState) decodeByteSequence() (Value, error) {
 	}
 }
 
-// decodeBoolean parses a Boolean according to RFC 8941 Section 4.2.8.
+// decodeBoolean parses a Boolean according to RFC 9651 Section 4.2.8.
 func (s *decodeState) decodeBoolean() (Value, error) {
 	if ch := s.peek(); ch != '?' {
 		return nil, s.errUnexpectedCharacter()
@@ -566,9 +566,7 @@ func (s *decodeState) decodeBoolean() (Value, error) {
 	}
 }
 
-// decodeDate parses a Date according to [sfbis-03 4.2.9. Parsing a Date]
-//
-// [sfbis-03 4.2.9. Parsing a Date]: https://www.ietf.org/archive/id/draft-ietf-httpbis-sfbis-03.html#name-parsing-a-date
+// decodeDate parses a Date according to RFC 9651 Section 4.2.9.
 func (s *decodeState) decodeDate() (Value, error) {
 	if ch := s.peek(); ch != '@' {
 		return nil, s.errUnexpectedCharacter()
@@ -611,9 +609,7 @@ func (s *decodeState) decodeDate() (Value, error) {
 	return time.Unix(num, 0), nil
 }
 
-// decodeDate parses a Date according to [sfbis-03 4.2.10. Parsing a Display String]
-//
-// [sfbis-03 4.2.10. Parsing a Display String]: https://www.ietf.org/archive/id/draft-ietf-httpbis-sfbis-03.html#name-parsing-a-display-string
+// decodeDisplayString parses a Date according to RFC 9651 Section 4.2.10.
 func (s *decodeState) decodeDisplayString() (Value, error) {
 	if ch := s.peek(); ch != '%' {
 		return nil, s.errUnexpectedCharacter()

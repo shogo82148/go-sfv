@@ -19,7 +19,7 @@ const (
 	MinDecimal = -0x1.d1a94a1fffffbp+39 // = -999999999999.9993896484375
 )
 
-// Token is a token defined in RFC 8941 Section 3.3.4. Tokens.
+// Token is a token defined in RFC 9651 Section 3.3.4. Tokens.
 // The token must match the following regular expression:
 //
 //	[a-zA-Z*][a-zA-Z0-9:/!#$%&'*+_.^_`|~-]*
@@ -81,7 +81,7 @@ type Parameter struct {
 	Value Value
 }
 
-// Parameters are an ordered map of key-value pairs defined in RFC 8941 Section 3.1.2. Parameters.
+// Parameters are an ordered map of key-value pairs defined in RFC 9651 Section 3.1.2. Parameters.
 type Parameters []Parameter
 
 // Get returns the last value associated with the given key.
@@ -102,16 +102,16 @@ func (param Parameters) Len() int {
 	return len(param)
 }
 
-// Item is an item defined RFC 8941 Section 3.3. Items.
+// Item is an item defined RFC 9651 Section 3.3. Items.
 type Item struct {
 	Value      Value
 	Parameters Parameters
 }
 
-// InnerList is an array defined in RFC 8941 Section 3.1.1. Inner Lists.
+// InnerList is an array defined in RFC 9651 Section 3.1.1. Inner Lists.
 type InnerList []Item
 
-// List is an array defined in RFC 8941 Section 3.1. Lists.
+// List is an array defined in RFC 9651 Section 3.1. Lists.
 type List []Item
 
 // DictMember is a key-value pair of Dictionary.
@@ -120,7 +120,7 @@ type DictMember struct {
 	Item Item
 }
 
-// Dictionary is an ordered map of key-value pairs defined in RFC 8941 Section 3.2. Dictionaries.
+// Dictionary is an ordered map of key-value pairs defined in RFC 9651 Section 3.2. Dictionaries.
 type Dictionary []DictMember
 
 // Get returns the last item associated with the given key.
