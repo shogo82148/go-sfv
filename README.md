@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/shogo82148/go-sfv.svg)](https://pkg.go.dev/github.com/shogo82148/go-sfv)
 [![Test](https://github.com/shogo82148/go-sfv/actions/workflows/test.yml/badge.svg)](https://github.com/shogo82148/go-sfv/actions/workflows/test.yml)
 
-Go implementation for [RFC 9651 Structured Field Values for HTTP](https://www.rfc-editor.org/rfc/rfc8941.html) (SFV).
+Go implementation for [RFC 9651 Structured Field Values for HTTP](https://www.rfc-editor.org/rfc/rfc9651.html) (SFV).
 
 ## Synopsis
 
