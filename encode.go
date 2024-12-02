@@ -63,10 +63,13 @@ func (s *encodeState) encodeInteger(v int64) error {
 
 // encodeDecimal serializes an decimal according to RFC 8941 Section 4.1.5.
 func (s *encodeState) encodeDecimal(v float64) error {
-	i := int64(math.RoundToEven(v * 1000))
-	if i > MaxInteger || i < MinInteger {
+	if math.IsNaN(v) || math.IsInf(v, 0) {
+		return fmt.Errorf("sfv: decimal %f is not a finite number", v)
+	}
+	if v > MaxDecimal || v < MinDecimal {
 		return fmt.Errorf("sfv: decimal %f is out of range", v)
 	}
+	i := int64(math.RoundToEven(v * 1000))
 
 	// write the sign
 	if i < 0 {
