@@ -442,6 +442,14 @@ func TestEncode_invalidTypes(t *testing.T) {
 		t.Error("want error, not not")
 	}
 
+	// NaN
+	_, err = EncodeItem(Item{
+		Value: math.NaN(),
+	})
+	if err == nil {
+		t.Error("want error, not not")
+	}
+
 	// in Parameters
 	_, err = EncodeItem(Item{
 		Value: 1,
