@@ -253,6 +253,7 @@ type decodeState struct {
 	fields     []string
 	line, col  int
 	endOfField bool
+	sepIdx     int
 	buf        bytes.Buffer
 }
 
@@ -261,8 +262,14 @@ func (s *decodeState) peek() int {
 		return endOfInput
 	}
 	if s.endOfField {
-		// insert commas between fields.
-		return ','
+		switch s.sepIdx {
+		case 0:
+			return ','
+		case 1:
+			return ' '
+		default:
+			panic("invalid separator index")
+		}
 	}
 	f := s.fields[s.line]
 	if s.col >= len(f) {
@@ -277,7 +284,10 @@ func (s *decodeState) next() {
 		return
 	}
 	if s.endOfField {
-		s.endOfField = false
+		s.sepIdx++
+		if s.sepIdx >= 2 {
+			s.endOfField = false
+		}
 		return
 	}
 
@@ -288,6 +298,7 @@ func (s *decodeState) next() {
 		s.col = 0
 		s.line++
 		s.endOfField = true
+		s.sepIdx = 0
 	}
 }
 

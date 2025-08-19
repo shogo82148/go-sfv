@@ -55,9 +55,9 @@ func runTestCases(t *testing.T, filename string) {
 		t.Run(tt.Name, func(t *testing.T) {
 			var canonical string
 			if tt.Canonical != nil {
-				canonical = strings.Join(tt.Canonical, ",")
+				canonical = strings.Join(tt.Canonical, ", ")
 			} else {
-				canonical = strings.Join(tt.Raw, ",")
+				canonical = strings.Join(tt.Raw, ", ")
 			}
 
 			switch tt.HeaderType {
