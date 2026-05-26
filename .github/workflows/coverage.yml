@@ -37,5 +37,5 @@ jobs:
         with:
           file: coverage.xml
           language: go
-          label: code-overage/go-1.26
+          label: code-coverage/go-1.26
           fail-on-error: false
