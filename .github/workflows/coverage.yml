@@ -31,6 +31,10 @@ jobs:
       - name: Test and collect coverage
         shell: bash
         run: go test -v -coverprofile=profile.cov ./...
+      - name: Convert coverage to Cobertura format
+        run: |
+          go install github.com/boumenot/gocover-cobertura@v1.5.0
+          gocover-cobertura < profile.cov > coverage.xml
 
       - name: Upload coverage report
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
