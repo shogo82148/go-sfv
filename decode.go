@@ -529,23 +529,14 @@ func (s *decodeState) decodeByteSequence() (Value, error) {
 			// the end of a Binary
 			s.next() // skip ':'
 
-			// add missing "=" padding
+			// remove "=" padding
 			// RFC 9651 says that parsers SHOULD NOT fail when "=" padding is not present.
-			switch s.buf.Len() % 4 {
-			case 0:
-			case 1:
-				s.buf.WriteByte('=')
-				fallthrough
-			case 2:
-				s.buf.WriteByte('=')
-				fallthrough
-			case 3:
-				s.buf.WriteByte('=')
-			}
+			buf := s.buf.Bytes()
+			buf = bytes.TrimRight(buf, "=")
 
-			enc := base64.StdEncoding
-			ret := make([]byte, enc.DecodedLen(s.buf.Len()))
-			n, err := enc.Decode(ret, s.buf.Bytes())
+			enc := base64.RawStdEncoding
+			ret := make([]byte, len(buf))
+			n, err := enc.Decode(ret, buf)
 			if err != nil {
 				return nil, err
 			}
