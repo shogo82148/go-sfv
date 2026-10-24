@@ -257,6 +257,26 @@ type decodeState struct {
 	buf        bytes.Buffer
 }
 
+func newDecodeState(fields []string) *decodeState {
+	s := &decodeState{
+		fields: fields,
+	}
+	s.skipEmptyFields()
+	return s
+}
+
+// skipEmptyFields skips empty field lines.
+// RFC 9651 combines multiple field lines into one comma-separated field value,
+// so an empty field line contributes only a separator.
+// e.g. []string{"", "a"} is parsed as ", a".
+func (s *decodeState) skipEmptyFields() {
+	for !s.endOfField && s.line < len(s.fields)-1 && len(s.fields[s.line]) == 0 {
+		s.line++
+		s.endOfField = true
+		s.sepIdx = 0
+	}
+}
+
 func (s *decodeState) peek() int {
 	if s.line >= len(s.fields) {
 		return endOfInput
@@ -287,6 +307,7 @@ func (s *decodeState) next() {
 		s.sepIdx++
 		if s.sepIdx >= 2 {
 			s.endOfField = false
+			s.skipEmptyFields()
 		}
 		return
 	}
@@ -865,9 +886,7 @@ func (s *decodeState) decodeDictionary() (Dictionary, error) {
 // DecodeList decodes fields as Structured Field Values,
 // and returns the result as an Item.
 func DecodeItem(fields []string) (Item, error) {
-	state := &decodeState{
-		fields: fields,
-	}
+	state := newDecodeState(fields)
 	state.skipSPs()
 	ret, err := state.decodeItem()
 	if err != nil {
@@ -883,9 +902,7 @@ func DecodeItem(fields []string) (Item, error) {
 // DecodeList decodes fields as Structured Field Values,
 // and returns the result as a List.
 func DecodeList(fields []string) (List, error) {
-	state := &decodeState{
-		fields: fields,
-	}
+	state := newDecodeState(fields)
 	state.skipSPs()
 	ret, err := state.decodeList()
 	if err != nil {
@@ -901,9 +918,7 @@ func DecodeList(fields []string) (List, error) {
 // DecodeDictionary decodes fields as Structured Field Values,
 // and returns the result as a Dictionary.
 func DecodeDictionary(fields []string) (Dictionary, error) {
-	state := &decodeState{
-		fields: fields,
-	}
+	state := newDecodeState(fields)
 	state.skipSPs()
 	ret, err := state.decodeDictionary()
 	if err != nil {

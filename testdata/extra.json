@@ -334,5 +334,41 @@
                 ]
             ]
         ]
+    },
+    {
+        "name": "extra: leading empty field line in list",
+        "raw": [
+            "",
+            "a"
+        ],
+        "header_type": "list",
+        "must_fail": true
+    },
+    {
+        "name": "extra: multiple empty field lines in list",
+        "raw": [
+            "",
+            ""
+        ],
+        "header_type": "list",
+        "must_fail": true
+    },
+    {
+        "name": "extra: leading empty field line in dictionary",
+        "raw": [
+            "",
+            "a=1"
+        ],
+        "header_type": "dictionary",
+        "must_fail": true
+    },
+    {
+        "name": "extra: leading empty field line in item",
+        "raw": [
+            "",
+            "1"
+        ],
+        "header_type": "item",
+        "must_fail": true
     }
 ]
