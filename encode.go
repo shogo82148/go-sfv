@@ -69,12 +69,41 @@ func (s *encodeState) encodeDecimal(v float64) error {
 	if v > MaxDecimal || v < MinDecimal {
 		return fmt.Errorf("sfv: decimal %f is out of range", v)
 	}
-	i := int64(math.RoundToEven(v * 1000))
+	// round to three fractional digits based on the shortest decimal representation of v,
+	// so that values like 0.5015 (actually 0.50149999... in binary) are treated as ties.
+	var tmp [32]byte
+	digits := strconv.AppendFloat(tmp[:0], math.Abs(v), 'f', -1, 64)
+	var i int64
+	var j int
+	for j = 0; j < len(digits) && digits[j] != '.'; j++ {
+		i = i*10 + int64(digits[j]-'0')
+	}
+	var fracDigits []byte
+	if j < len(digits) {
+		fracDigits = digits[j+1:]
+	}
+	for k := 0; k < 3; k++ {
+		i *= 10
+		if k < len(fracDigits) {
+			i += int64(fracDigits[k] - '0')
+		}
+	}
+	if len(fracDigits) > 3 {
+		switch {
+		case fracDigits[3] > '5':
+			i++
+		case fracDigits[3] == '5':
+			if len(fracDigits) > 4 || i%2 == 1 {
+				// the shortest representation has no trailing zeros,
+				// so any digits after '5' mean it is above the midpoint.
+				i++
+			}
+		}
+	}
 
 	// write the sign
-	if i < 0 {
+	if v < 0 && i != 0 {
 		s.buf.WriteByte('-')
-		i *= -1
 	}
 
 	// integer component
