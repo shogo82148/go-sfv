@@ -31,9 +31,9 @@ jobs:
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7.0.1
       - name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ matrix.go }}
 
@@ -43,7 +43,7 @@ jobs:
         env:
           GOARCH: ${{ matrix.arch }}
 
-      - uses: shogo82148/actions-goveralls@548a2a7896df420c38df648845a5525a33f82585 # v1.11.5
+      - uses: shogo82148/actions-goveralls@v1.11.5
         with:
           path-to-profile: profile.cov
           flag-name: Go-${{ matrix.go }}-${{ matrix.os }}
@@ -55,15 +55,15 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: shogo82148/actions-goveralls@548a2a7896df420c38df648845a5525a33f82585 # v1.11.5
+      - uses: shogo82148/actions-goveralls@v1.11.5
         with:
           parallel-finished: true
 
   compile-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-go@v7.0.0
         with:
           go-version: "stable"
       - run: |
